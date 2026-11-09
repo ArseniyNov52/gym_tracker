@@ -1,0 +1,4546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>GymFlow - Трекер прогресса тренировок</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GymFlow">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RH1WWR3XTP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-RH1WWR3XTP');
+  </script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 50%, #f5f7fa 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    
+    .header-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 56px;
+      gap: 0.5rem;
+    }
+    
+    @media (min-width: 640px) {
+      .header-content {
+        padding: 0 1rem;
+        height: 64px;
+      }
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    
+    @media (min-width: 640px) {
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+        border-radius: 12px;
+      }
+    }
+    
+    .logo-text h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    @media (min-width: 640px) {
+      .logo-text h1 {
+        font-size: 1.25rem;
+      }
+    }
+    
+    .logo-text p {
+      display: none;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    
+    @media (min-width: 400px) {
+      .logo-text p {
+        display: block;
+      }
+    }
+    
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      padding: 0.375rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #6ee7b7;
+    }
+    
+    @media (min-width: 640px) {
+      .timer-display {
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+      }
+    }
+    
+    .timer-icon {
+      font-size: 16px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .timer-text {
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #047857;
+    }
+    
+    @media (min-width: 640px) {
+      .timer-text {
+        font-size: 1.125rem;
+      }
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem 0.75rem;
+    }
+    
+    @media (min-width: 640px) {
+      .container {
+        padding: 2rem 1rem;
+      }
+    }
+    
+    .nav {
+      margin-bottom: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+      .nav {
+        margin-bottom: 2rem;
+      }
+    }
+    
+    .nav-buttons {
+      background: white;
+      border-radius: 16px;
+      padding: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .nav-buttons::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      background: transparent;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    
+    .nav-btn:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    
+    .nav-btn.active {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      margin-bottom: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+      .card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    @media (min-width: 640px) {
+      .card-header {
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    @media (min-width: 640px) {
+      .card-title {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 44px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    
+    .btn-danger {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* Добавлен стиль для кнопки отмены */
+    .btn-warning {
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fb923c;
+    }
+
+    .btn-warning:hover {
+      background: #ffedd5;
+    }
+    /* </CHANGE> */
+    
+    .btn-large {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #64748b;
+    }
+    
+    @media (min-width: 640px) {
+      .empty-state {
+        padding: 3rem;
+      }
+    }
+    
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    
+    @media (min-width: 640px) {
+      .empty-icon {
+        font-size: 4rem;
+      }
+    }
+    
+    .empty-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+    
+    @media (min-width: 640px) {
+      .empty-title {
+        font-size: 1.25rem;
+      }
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+    }
+    
+    @media (min-width: 640px) {
+      .modal-overlay {
+        padding: 1rem;
+      }
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 16px;
+      max-width: 42rem;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    @media (min-width: 640px) {
+      .modal-header {
+        padding: 1.5rem;
+      }
+    }
+    
+    .modal-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    @media (min-width: 640px) {
+      .modal-title {
+        font-size: 1.25rem;
+      }
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #94a3b8;
+      transition: color 0.2s;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-close:hover {
+      color: #475569;
+    }
+    
+    .modal-body {
+      padding: 1rem;
+      overflow-y: auto;
+      overflow-x: hidden; /* Адаптивность модального окна ввода - убрана горизонтальная прокрутка */
+      max-height: calc(90vh - 72px);
+    }
+    
+    @media (min-width: 640px) {
+      .modal-body {
+        padding: 1.5rem;
+        max-height: calc(90vh - 88px);
+      }
+    }
+    
+    .input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      min-height: 44px;
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+    
+    .label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid #e2e8f0;
+    }
+    
+    @media (min-width: 640px) {
+      .stat-card {
+        padding: 1.25rem;
+      }
+    }
+    
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    @media (min-width: 640px) {
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+        border-radius: 12px;
+      }
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    
+    @media (min-width: 640px) {
+      .stat-value {
+        font-size: 2rem;
+      }
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr;
+    }
+    
+    @media (min-width: 480px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+    }
+    
+    .exercise-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+      transition: border-color 0.2s;
+    }
+    
+    @media (min-width: 640px) {
+      .exercise-item {
+        padding: 1.25rem;
+      }
+    }
+    
+    .exercise-item:hover {
+      border-color: #93c5fd;
+    }
+    
+    .set-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+    }
+    
+    .chart-container {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    @media (min-width: 640px) {
+      .chart-container {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+    }
+    
+    @media (min-width: 768px) {
+      .chart-title {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+      }
+    }
+    
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 480px) {
+      .achievement-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .achievement-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+    }
+    
+    .achievement-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    @media (min-width: 640px) {
+      .achievement-card {
+        padding: 1.25rem;
+      }
+    }
+    
+    .achievement-card.unlocked {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+    
+    .achievement-card.locked {
+      opacity: 0.6;
+      filter: grayscale(100%);
+    }
+    
+    .achievement-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    @media (min-width: 640px) {
+      .achievement-icon {
+        font-size: 3rem;
+      }
+    }
+    
+    .achievement-title {
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    
+    .achievement-desc {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+    
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .counter-btn {
+      width: 44px;
+      height: 44px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    
+    @media (min-width: 640px) {
+      .counter-btn {
+        width: 48px;
+        height: 48px;
+      }
+    }
+    
+    .counter-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* Увеличены кнопки стрелок для удобства */
+    .counter-btn-large {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border: none;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .counter-btn-large:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .counter-btn-large:active {
+      transform: scale(0.95);
+    }
+    /* </CHANGE> */
+    
+    .counter-input {
+      flex: 1;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.625rem;
+      min-height: 44px;
+    }
+    
+    @media (min-width: 640px) {
+      .counter-input {
+        font-size: 1.5rem;
+        padding: 0.75rem;
+      }
+    }
+    
+    .mood-selector {
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .mood-btn {
+      flex: 1;
+      padding: 1rem;
+      font-size: 2rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .mood-btn.selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+      transform: scale(1.05);
+    }
+
+    /* Улучшенные стили для формы ввода веса и повторений */
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    @media (min-width: 640px) {
+      .input-row {
+        gap: 0.75rem;
+      }
+    }
+    /* </CHANGE> */
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const exerciseDatabase = {
+      'Грудь': ['Жим штанги лежа','Жим штанги на наклонной скамье','Жим гантелей лежа','Разводка гантелей лежа','Отжимания от пола','Сведение рук в тренажере «Бабочка»','Кроссоверы'],
+      'Спина': ['Подтягивания','Становая тяга','Тяга штанги в наклоне','Тяга верхнего блока к груди','Гиперэкстензия','Шраги со штангой'],
+      'Ноги': ['Приседания со штангой','Жим ногами','Выпады с гантелями','Разгибания ног в тренажере','Сгибания ног в тренажере','Подъемы на носки'],
+      'Плечи': ['Армейский жим','Жим гантелей сидя','Махи гантелей в стороны','Махи в наклоне','Тяга штанги к подбородку'],
+      'Бицепс': ['Подъем штанги на бицепс','Подъем гантелей на бицепс','Сгибания «молот»','Сгибания на скамье Скотта'],
+      'Трицепс': ['Жим лежа узким хватом','Французский жим','Разгибания на блоке','Отжимания на брусьях'],
+      'Пресс': ['Скручивания','Подъем ног в висе','Планка','Молитва на блоке']
+    };
+
+    // Список упражнений с собственным весом (без отягощения по умолчанию)
+    const DEFAULT_NO_WEIGHT_EXERCISES = [
+      'Подтягивания',
+      'Отжимания от пола',
+      'Отжимания на брусьях',
+      'Гиперэкстензия',
+      'Скручивания',
+      'Подъем ног в висе',
+      'Планка',
+      'Молитва на блоке'
+    ];
+
+    function checkExerciseHasWeight(exercise) {
+      if (!exercise) return true;
+      if (typeof exercise.hasWeight === 'boolean') {
+        return exercise.hasWeight;
+      }
+      if (exercise.group === 'Пресс') return false;
+      if (DEFAULT_NO_WEIGHT_EXERCISES.includes(exercise.name || exercise.exerciseName)) return false;
+      return true;
+    }
+
+    // Звуковой сигнал завершения таймера через Web Audio API (без внешних файлов)
+    function playTimerSound() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        const playBeep = (freq, time, dur) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, time);
+          gain.gain.setValueAtTime(0.25, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+          osc.start(time);
+          osc.stop(time + dur);
+        };
+        playBeep(880, ctx.currentTime, 0.2);
+        playBeep(1174.66, ctx.currentTime + 0.22, 0.35);
+      } catch (e) {
+        // Контекст аудио может ожидать жеста пользователя
+      }
+    }
+
+    const ACHIEVEMENT_CATEGORIES = [
+      {name: 'Постоянство', achievements: [
+        {id: 'c1', title: 'Новичок', description: 'Завершить 1 тренировку', icon: '🌱'},
+        {id: 'c10', title: 'Привычка', description: 'Завершить 10 тренировок', icon: '💪'},
+        {id: 'c50', title: 'Работяга', description: 'Завершить 50 тренировок', icon: '🔥'},
+        {id: 'c100', title: 'Ветеран зала', description: 'Завершить 100 тренировок', icon: '🏆'},
+        {id: 'c200', title: 'Железная дисциплина', description: 'Завершить 200 тренировок', icon: '⚡'},
+        {id: 'c400', title: 'Мастер тренажёрного зала', description: 'Завершить 400 тренировок', icon: '🔱'},
+        {id: 'c800', title: 'Легенда спорта', description: 'Завершить 800 тренировок', icon: '👑'}
+      ]},
+      {name: 'Вес на тренировках', achievements: [
+        {id: 'v1t', title: 'Первая тонна', description: 'Поднять >1 т за тренировку', icon: '🏋️'},
+        {id: 'v2t', title: 'Двойная сила', description: 'Поднять >2 т за тренировку', icon: '💪'},
+        {id: 'v5t', title: 'Силач', description: 'Поднять >5 т за тренировку', icon: '🦬'},
+        {id: 'v10t', title: 'Титан', description: 'Поднять >10 т за тренировку', icon: '⚡'},
+        {id: 'v20t', title: 'Геркулес', description: 'Поднять >20 т за тренировку', icon: '🔥'},
+        {id: 'v40t', title: 'Сверхчеловек', description: 'Поднять >40 т за тренировку', icon: '💎'}
+      ]},
+      {name: 'Общий поднятый вес', achievements: [
+        {id: 't50t', title: 'Начинающий атлет', description: 'Общий тоннаж >50 т', icon: '🎯'},
+        {id: 't100t', title: 'Тонный клуб', description: 'Общий тоннаж >100 т', icon: '🏭'},
+        {id: 't250t', title: 'Стальной характер', description: 'Общий тоннаж >250 т', icon: '🔨'},
+        {id: 't500t', title: 'Архитектор тела', description: 'Общий тоннаж >500 т', icon: '🏛️'},
+        {id: 't1000t', title: 'Покоритель вершин', description: 'Общий тоннаж >1000 т', icon: '🏔️'}
+      ]},
+      {name: 'Проведенное время в зале', achievements: [
+        {id: 'time5h', title: 'Первые шаги', description: 'Провести >5 часов в зале', icon: '⏱️'},
+        {id: 'time20h', title: 'Завсегдатай', description: 'Провести >20 часов в зале', icon: '🕐'},
+        {id: 'time50h', title: 'Преданный фитнесу', description: 'Провести >50 часов в зале', icon: '⏰'},
+        {id: 'time100h', title: 'Марафонец', description: 'Провести >100 часов в зале', icon: '⌚'},
+        {id: 'time250h', title: 'Храм силы', description: 'Провести >250 часов в зале', icon: '🏛️'},
+        {id: 'time500h', title: 'Железная жизнь', description: 'Провести >500 часов в зале', icon: '💫'}
+      ]}
+    ];
+
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('workout');
+      const [exercises, setExercises] = useState([]);
+      const [workouts, setWorkouts] = useState([]);
+      const [templates, setTemplates] = useState([]);
+      const [currentWorkout, setCurrentWorkout] = useState(null);
+      const [timerSeconds, setTimerSeconds] = useState(0);
+      const [isTimerRunning, setIsTimerRunning] = useState(false);
+      const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+      const [goals, setGoals] = useState([]);
+
+      // Пользовательские настройки по умолчанию
+      const [userSettings, setUserSettings] = useState(() => {
+        const saved = localStorage.getItem('gym_settings');
+        return saved ? JSON.parse(saved) : {
+          defaultWeight: 50,
+          defaultReps: 10,
+          defaultRestTime: 90
+        };
+      });
+
+      // Глобальный таймер отдыха (работает на всех вкладках и при закрытии/сворачивании)
+      const [restTimer, setRestTimer] = useState(() => {
+        const savedRunning = localStorage.getItem('gym_rest_running') === 'true';
+        const savedTarget = parseInt(localStorage.getItem('gym_rest_target') || '0', 10);
+        const savedTotal = parseInt(localStorage.getItem('gym_rest_total') || '90', 10);
+        const savedExercise = localStorage.getItem('gym_rest_exercise') || '';
+        
+        if (savedRunning && savedTarget > Date.now()) {
+          return {
+            isRunning: true,
+            targetTime: savedTarget,
+            totalDuration: savedTotal,
+            exerciseName: savedExercise,
+            remainingSeconds: Math.ceil((savedTarget - Date.now()) / 1000)
+          };
+        }
+        return {
+          isRunning: false,
+          targetTime: 0,
+          totalDuration: 90,
+          exerciseName: '',
+          remainingSeconds: 0
+        };
+      });
+
+      /* Улучшенный таймер тренировки с поддержкой работы в фоновом режиме */
+      const timerStartTimeRef = useRef(null);
+      const lastUpdateRef = useRef(Date.now());
+
+      useEffect(() => {
+        let interval;
+        if (isTimerRunning && currentWorkout) {
+          if (!timerStartTimeRef.current) {
+            timerStartTimeRef.current = Date.now() - (timerSeconds * 1000);
+          }
+
+          interval = setInterval(() => {
+            const now = Date.now();
+            const elapsed = Math.floor((now - timerStartTimeRef.current) / 1000);
+            setTimerSeconds(elapsed);
+            lastUpdateRef.current = now;
+          }, 1000);
+
+          const handleVisibilityChange = () => {
+            if (!document.hidden && isTimerRunning) {
+              const now = Date.now();
+              const elapsed = Math.floor((now - timerStartTimeRef.current) / 1000);
+              setTimerSeconds(elapsed);
+            }
+          };
+
+          document.addEventListener('visibilitychange', handleVisibilityChange);
+
+          return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+          };
+        } else {
+          timerStartTimeRef.current = null;
+        }
+        return () => clearInterval(interval);
+      }, [isTimerRunning, currentWorkout]);
+
+      // Обработка таймера отдыха с сохранением в фоновом режиме и при выходе с сайта
+      useEffect(() => {
+        let interval;
+        if (restTimer.isRunning) {
+          interval = setInterval(() => {
+            const now = Date.now();
+            const diff = Math.ceil((restTimer.targetTime - now) / 1000);
+            if (diff <= 0) {
+              setRestTimer(prev => ({
+                ...prev,
+                isRunning: false,
+                remainingSeconds: 0
+              }));
+              localStorage.removeItem('gym_rest_running');
+              localStorage.removeItem('gym_rest_target');
+              playTimerSound();
+              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+              alert('⏰ Время отдыха закончилось! Готовы к следующему подходу?');
+            } else {
+              setRestTimer(prev => ({
+                ...prev,
+                remainingSeconds: diff
+              }));
+            }
+          }, 500);
+
+          const handleVisibility = () => {
+            if (!document.hidden && restTimer.isRunning) {
+              const now = Date.now();
+              const diff = Math.ceil((restTimer.targetTime - now) / 1000);
+              if (diff <= 0) {
+                setRestTimer(prev => ({
+                  ...prev,
+                  isRunning: false,
+                  remainingSeconds: 0
+                }));
+                localStorage.removeItem('gym_rest_running');
+                localStorage.removeItem('gym_rest_target');
+                playTimerSound();
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                alert('⏰ Время отдыха закончилось! Готовы к следующему подходу?');
+              } else {
+                setRestTimer(prev => ({
+                  ...prev,
+                  remainingSeconds: diff
+                }));
+              }
+            }
+          };
+
+          document.addEventListener('visibilitychange', handleVisibility);
+          return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibility);
+          };
+        }
+        return () => clearInterval(interval);
+      }, [restTimer.isRunning, restTimer.targetTime]);
+
+      const startRestTimer = (seconds, exerciseName = '') => {
+        const duration = Math.max(5, seconds || userSettings.defaultRestTime || 90);
+        const targetTime = Date.now() + duration * 1000;
+        
+        localStorage.setItem('gym_rest_running', 'true');
+        localStorage.setItem('gym_rest_target', targetTime.toString());
+        localStorage.setItem('gym_rest_total', duration.toString());
+        localStorage.setItem('gym_rest_exercise', exerciseName);
+        
+        setRestTimer({
+          isRunning: true,
+          targetTime,
+          totalDuration: duration,
+          exerciseName,
+          remainingSeconds: duration
+        });
+      };
+
+      const adjustRestTimer = (deltaSeconds) => {
+        if (!restTimer.isRunning) return;
+        const newTarget = restTimer.targetTime + deltaSeconds * 1000;
+        const newRemaining = Math.max(0, Math.ceil((newTarget - Date.now()) / 1000));
+        if (newRemaining <= 0) {
+          stopRestTimer();
+        } else {
+          localStorage.setItem('gym_rest_target', newTarget.toString());
+          setRestTimer(prev => ({
+            ...prev,
+            targetTime: newTarget,
+            remainingSeconds: newRemaining
+          }));
+        }
+      };
+
+      const stopRestTimer = () => {
+        localStorage.removeItem('gym_rest_running');
+        localStorage.removeItem('gym_rest_target');
+        setRestTimer(prev => ({
+          ...prev,
+          isRunning: false,
+          remainingSeconds: 0
+        }));
+      };
+
+      useEffect(() => {
+        const initExercises = [];
+        let id = 1;
+        for (const [group, exList] of Object.entries(exerciseDatabase)) {
+          exList.forEach(name => {
+            const hasWeight = group !== 'Пресс' && !DEFAULT_NO_WEIGHT_EXERCISES.includes(name);
+            initExercises.push({
+              id: id++,
+              name,
+              group,
+              hasWeight,
+              system: true
+            });
+          });
+        }
+        
+        const saved = localStorage.getItem('gym_exercises');
+        if (saved) {
+          const userExercises = JSON.parse(saved).filter(ex => !ex.system);
+          userExercises.forEach(ex => {
+            const hasWeight = ex.hasWeight !== undefined ? ex.hasWeight : (ex.group !== 'Пресс' && !DEFAULT_NO_WEIGHT_EXERCISES.includes(ex.name));
+            initExercises.push({ ...ex, hasWeight, id: id++ });
+          });
+        }
+        
+        setExercises(initExercises);
+        
+        let loadedWorkouts = [];
+        const savedWorkouts = localStorage.getItem('gym_workouts');
+        if (savedWorkouts) {
+          loadedWorkouts = JSON.parse(savedWorkouts);
+          setWorkouts(loadedWorkouts);
+        }
+        
+        const savedTemplates = localStorage.getItem('gym_templates');
+        if (savedTemplates) setTemplates(JSON.parse(savedTemplates));
+
+        let currentUnlocked = [];
+        const savedAchievements = localStorage.getItem('gym_achievements');
+        if (savedAchievements) {
+          currentUnlocked = JSON.parse(savedAchievements);
+        }
+
+        // Автоматическая проверка достижений при загрузке (чтобы Новичок и другие выдались тем, кто уже завершил тренировки)
+        if (loadedWorkouts.length > 0) {
+          const newlyUnlocked = [...currentUnlocked];
+          if (loadedWorkouts.length >= 1 && !newlyUnlocked.includes('c1')) newlyUnlocked.push('c1');
+          if (loadedWorkouts.length >= 10 && !newlyUnlocked.includes('c10')) newlyUnlocked.push('c10');
+          if (loadedWorkouts.length >= 50 && !newlyUnlocked.includes('c50')) newlyUnlocked.push('c50');
+          if (loadedWorkouts.length >= 100 && !newlyUnlocked.includes('c100')) newlyUnlocked.push('c100');
+          currentUnlocked = newlyUnlocked;
+          localStorage.setItem('gym_achievements', JSON.stringify(currentUnlocked));
+        }
+        setUnlockedAchievements(currentUnlocked);
+        
+        const savedGoals = localStorage.getItem('gym_goals');
+        if (savedGoals) setGoals(JSON.parse(savedGoals));
+
+        // Восстановление текущей тренировки
+        const savedCurrentWorkout = localStorage.getItem('gym_current_workout');
+        if (savedCurrentWorkout) {
+          const workout = JSON.parse(savedCurrentWorkout);
+          setCurrentWorkout(workout);
+          
+          const savedTimerSeconds = localStorage.getItem('gym_timer_seconds');
+          const savedTimerStartTime = localStorage.getItem('gym_timer_start_time');
+          
+          if (savedTimerStartTime) {
+            const startTime = parseInt(savedTimerStartTime);
+            const now = Date.now();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            timerStartTimeRef.current = startTime;
+            setTimerSeconds(elapsed);
+            setIsTimerRunning(true);
+          }
+        }
+      }, []);
+
+      useEffect(() => {
+        localStorage.setItem('gym_exercises', JSON.stringify(exercises.filter(e => !e.system)));
+        localStorage.setItem('gym_workouts', JSON.stringify(workouts));
+        localStorage.setItem('gym_templates', JSON.stringify(templates));
+        localStorage.setItem('gym_achievements', JSON.stringify(unlockedAchievements));
+        localStorage.setItem('gym_goals', JSON.stringify(goals));
+
+        // Сохранение текущей тренировки
+        if (currentWorkout) {
+          localStorage.setItem('gym_current_workout', JSON.stringify(currentWorkout));
+          localStorage.setItem('gym_timer_seconds', timerSeconds.toString());
+          if (timerStartTimeRef.current) {
+            localStorage.setItem('gym_timer_start_time', timerStartTimeRef.current.toString());
+          }
+        } else {
+          localStorage.removeItem('gym_current_workout');
+          localStorage.removeItem('gym_timer_seconds');
+          localStorage.removeItem('gym_timer_start_time');
+        }
+      }, [exercises, workouts, templates, unlockedAchievements, goals, currentWorkout, timerSeconds]);
+      // </CHANGE>
+
+      const formatTime = (seconds) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      };
+
+      const startNewWorkout = () => {
+        const workout = {
+          id: Date.now(),
+          startDate: new Date().toISOString(),
+          endDate: null,
+          templateName: 'Свободная тренировка',
+          bodyWeightBefore: null,
+          bodyWeightAfter: null,
+          overallMood: null,
+          notes: '',
+          exercises: []
+        };
+        setCurrentWorkout(workout);
+        setIsTimerRunning(true);
+        setTimerSeconds(0); // Reset timer for new workout
+      };
+
+      const startFromTemplate = (templateId) => {
+        const template = templates.find(t => t.id === templateId);
+        if (!template) return;
+
+        const workout = {
+          id: Date.now(),
+          startDate: new Date().toISOString(),
+          endDate: null,
+          templateName: template.name,
+          bodyWeightBefore: null,
+          bodyWeightAfter: null,
+          overallMood: null,
+          notes: '',
+          exercises: template.exercises.map(ex => ({
+            exerciseId: ex.exerciseId,
+            exerciseName: ex.exerciseName,
+            sets: [],
+            restTime: ex.restTime
+          }))
+        };
+        setCurrentWorkout(workout);
+        setIsTimerRunning(true);
+        setTimerSeconds(0); // Reset timer for new workout
+        setActiveTab('workout');
+      };
+
+      /* Добавлена функция отмены тренировки */
+      const cancelWorkout = () => {
+        if (!currentWorkout) return;
+        
+        if (confirm('⚠️ Отменить тренировку?\n\nВсе данные текущей тренировки будут потеряны. Вы уверены?')) {
+          setCurrentWorkout(null);
+          setIsTimerRunning(false);
+          setTimerSeconds(0);
+          alert('Тренировка отменена');
+        }
+      };
+      /* </CHANGE> */
+
+      const checkAndUnlockAchievements = (lastWorkout, allWorkouts = workouts) => {
+        const getWorkoutVolume = (w) => 
+          w.exercises.reduce((s, e) => s + e.sets.reduce((a, st) => a + (st.weight || 0) * st.reps, 0), 0);
+        
+        const getTotalVolume = (ww) => 
+          ww.reduce((t, w) => t + getWorkoutVolume(w), 0);
+
+        const getTotalHours = (ww) => {
+          const totalMs = ww.reduce((sum, w) => w.endDate ? sum + (new Date(w.endDate).getTime() - new Date(w.startDate).getTime()) : sum, 0);
+          return totalMs / 3600000;
+        };
+
+        const lastVolume = lastWorkout ? getWorkoutVolume(lastWorkout) : 0;
+        const totalVol = getTotalVolume(allWorkouts);
+        const totalHours = getTotalHours(allWorkouts);
+
+        const checks = [
+          { id: 'c1', condition: allWorkouts.length >= 1 },
+          { id: 'c10', condition: allWorkouts.length >= 10 },
+          { id: 'c50', condition: allWorkouts.length >= 50 },
+          { id: 'c100', condition: allWorkouts.length >= 100 },
+          { id: 'c200', condition: allWorkouts.length >= 200 },
+          { id: 'c400', condition: allWorkouts.length >= 400 },
+          { id: 'c800', condition: allWorkouts.length >= 800 },
+          { id: 'v1t', condition: lastVolume > 1000 },
+          { id: 'v2t', condition: lastVolume > 2000 },
+          { id: 'v5t', condition: lastVolume > 5000 },
+          { id: 'v10t', condition: lastVolume > 10000 },
+          { id: 'v20t', condition: lastVolume > 20000 },
+          { id: 'v40t', condition: lastVolume > 40000 },
+          { id: 't50t', condition: totalVol > 50000 },
+          { id: 't100t', condition: totalVol > 100000 },
+          { id: 't250t', condition: totalVol > 250000 },
+          { id: 't500t', condition: totalVol > 500000 },
+          { id: 't1000t', condition: totalVol > 1000000 },
+          { id: 'time5h', condition: totalHours > 5 },
+          { id: 'time20h', condition: totalHours > 20 },
+          { id: 'time50h', condition: totalHours > 50 },
+          { id: 'time100h', condition: totalHours > 100 },
+          { id: 'time250h', condition: totalHours > 250 },
+          { id: 'time500h', condition: totalHours > 500 }
+        ];
+
+        const newly = [];
+        checks.forEach(check => {
+          if (!unlockedAchievements.includes(check.id) && check.condition) {
+            newly.push(check.id);
+          }
+        });
+
+        if (newly.length > 0) {
+          const updatedAchievements = [...unlockedAchievements, ...newly];
+          setUnlockedAchievements(updatedAchievements);
+          localStorage.setItem('gym_achievements', JSON.stringify(updatedAchievements));
+          const achievementNames = newly.map(id => {
+            for (const cat of ACHIEVEMENT_CATEGORIES) {
+              const ach = cat.achievements.find(a => a.id === id);
+              if (ach) return ach.title;
+            }
+            return '';
+          }).filter(Boolean);
+          
+          setTimeout(() => {
+            alert(`🎉 Новое достижение разблокировано!\n\n${achievementNames.join(', ')}`);
+          }, 500);
+        }
+      };
+
+      const finishWorkout = () => {
+        if (!currentWorkout) return;
+        
+        const filtered = currentWorkout.exercises.filter(e => e.sets.length > 0);
+        if (filtered.length === 0) {
+          alert('Добавьте хотя бы один подход');
+          return;
+        }
+
+        /* Изменено: теперь только 3 варианта оценки самочувствия */
+        const mood = prompt('Оцените общее самочувствие после тренировки:\n1 - Плохо 😫\n2 - Нормально 😐\n3 - Отлично 😄', '2');
+        const overallMood = mood ? Math.min(3, Math.max(1, parseInt(mood) || 2)) : 2;
+        /* </CHANGE> */
+
+        const notes = prompt('Добавьте заметки о тренировке (ощущения, боли, идеи):', '');
+
+        const finished = {
+          ...currentWorkout,
+          exercises: filtered,
+          endDate: new Date().toISOString(),
+          overallMood,
+          notes: notes || ''
+        };
+
+        const updated = [...workouts, finished];
+        setWorkouts(updated);
+        
+        setIsTimerRunning(false);
+        setTimerSeconds(0);
+        
+        setCurrentWorkout(null);
+        
+        checkAndUnlockAchievements(finished, updated);
+        
+        alert('Тренировка завершена! 💪');
+      };
+
+      const exportData = () => {
+        const data = {
+          exercises: exercises.filter(e => !e.system),
+          workouts,
+          templates,
+          goals,
+          userSettings,
+          exportDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gym-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('Данные экспортированы! 📥');
+      };
+
+      /* Добавлена функция импорта данных */
+      const importData = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              
+              if (!data.workouts || !Array.isArray(data.workouts)) {
+                alert('❌ Неверный формат файла');
+                return;
+              }
+              
+              const confirmMsg = `Импортировать данные?\n\n` +
+                `Тренировок: ${data.workouts?.length || 0}\n` +
+                `Шаблонов: ${data.templates?.length || 0}\n` +
+                `Упражнений: ${data.exercises?.length || 0}\n` +
+                `Целей: ${data.goals?.length || 0}\n\n` +
+                `⚠️ Это добавит данные к существующим!`;
+              
+              if (!confirm(confirmMsg)) return;
+              
+              // Импорт тренировок
+              if (data.workouts && Array.isArray(data.workouts)) {
+                setWorkouts([...workouts, ...data.workouts]);
+              }
+              
+              // Импорт шаблонов
+              if (data.templates && Array.isArray(data.templates)) {
+                setTemplates([...templates, ...data.templates]);
+              }
+              
+              // Импорт упражнений
+              if (data.exercises && Array.isArray(data.exercises)) {
+                const userExercises = data.exercises.filter(e => !e.system);
+                let maxId = Math.max(...exercises.map(e => e.id), 0);
+                const newExercises = userExercises.map(e => ({
+                  ...e,
+                  id: ++maxId,
+                  system: false
+                }));
+                setExercises([...exercises, ...newExercises]);
+              }
+              
+              // Импорт целей
+              if (data.goals && Array.isArray(data.goals)) {
+                setGoals([...goals, ...data.goals]);
+              }
+
+              // Импорт настроек
+              if (data.userSettings) {
+                setUserSettings(data.userSettings);
+                localStorage.setItem('gym_settings', JSON.stringify(data.userSettings));
+              }
+              
+              alert('✅ Данные успешно импортированы!');
+            } catch (error) {
+              alert('❌ Ошибка при чтении файла: ' + error.message);
+            }
+          };
+          
+          reader.readAsText(file);
+        };
+        
+        input.click();
+      };
+      /* </CHANGE> */
+
+      const resetAllData = () => {
+        if (!confirm('⚠️ Внимание!\n\nЭто удалит все данные. Вы уверены?')) return;
+        
+        if (confirm('Хотите сначала экспортировать данные?')) {
+          exportData();
+          setTimeout(() => {
+            if (confirm('Теперь удалить все данные? Это действие необратимо!')) {
+              localStorage.clear();
+              window.location.reload();
+            }
+          }, 1000);
+        } else {
+          if (confirm('Последнее предупреждение! Все данные будут удалены безвозвратно. Продолжить?')) {
+            localStorage.clear();
+            window.location.reload();
+          }
+        }
+      };
+
+      return (
+        <div>
+          <header className="header">
+            <div className="header-content">
+              <div className="logo">
+                <div className="logo-icon">💪</div>
+                <div className="logo-text">
+                  <h1>GymFlow</h1>
+                  <p>Трекер прогресса</p>
+                </div>
+              </div>
+              
+              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap'}}>
+                {restTimer.isRunning && restTimer.remainingSeconds > 0 && (
+                  <div 
+                    className="timer-display" 
+                    style={{
+                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
+                      borderColor: '#f59e0b',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setActiveTab('workout')}
+                    title="Отдых между подходами. Нажмите, чтобы открыть тренировку"
+                  >
+                    <span className="timer-icon">⏳</span>
+                    <span className="timer-text" style={{color: '#b45309'}}>
+                      {Math.floor(restTimer.remainingSeconds / 60)}:{(restTimer.remainingSeconds % 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
+                )}
+                {isTimerRunning && (
+                  <div className="timer-display">
+                    <span className="timer-icon">⏱️</span>
+                    <span className="timer-text">{formatTime(timerSeconds)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className="container">
+            <nav className="nav">
+              <div className="nav-buttons">
+                <button className={`nav-btn ${activeTab === 'workout' ? 'active' : ''}`} onClick={() => setActiveTab('workout')}>
+                  <span>💪</span> Тренировка
+                </button>
+                <button className={`nav-btn ${activeTab === 'templates' ? 'active' : ''}`} onClick={() => setActiveTab('templates')}>
+                  <span>📅</span> Шаблоны
+                </button>
+                <button className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+                  <span>📈</span> История
+                </button>
+                <button className={`nav-btn ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>
+                  <span>📊</span> Статистика
+                </button>
+                <button className={`nav-btn ${activeTab === 'goals' ? 'active' : ''}`} onClick={() => setActiveTab('goals')}>
+                  <span>🎯</span> Цели
+                </button>
+                <button className={`nav-btn ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')}>
+                  <span>📆</span> Посещения
+                </button>
+                <button className={`nav-btn ${activeTab === 'achievements' ? 'active' : ''}`} onClick={() => setActiveTab('achievements')}>
+                  <span>🏆</span> Достижения
+                </button>
+                <button className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+                  <span>⚙️</span> Настройки
+                </button>
+              </div>
+            </nav>
+
+            <main>
+              {activeTab === 'workout' && (
+                <WorkoutTab
+                  currentWorkout={currentWorkout}
+                  exercises={exercises}
+                  templates={templates}
+                  workouts={workouts}
+                  userSettings={userSettings}
+                  restTimer={restTimer}
+                  onStartRestTimer={startRestTimer}
+                  onStopRestTimer={stopRestTimer}
+                  onAdjustRestTimer={adjustRestTimer}
+                  onStartWorkout={startNewWorkout}
+                  onFinishWorkout={finishWorkout}
+                  onCancelWorkout={cancelWorkout}
+                  onUpdateWorkout={setCurrentWorkout}
+                />
+              )}
+              
+              {activeTab === 'templates' && (
+                <TemplatesTab
+                  templates={templates}
+                  exercises={exercises}
+                  onSaveTemplate={(template) => {
+                    if (template.id && templates.find(t => t.id === template.id)) {
+                      setTemplates(templates.map(t => t.id === template.id ? template : t));
+                    } else {
+                      setTemplates([...templates, { ...template, id: Date.now(), createdAt: new Date().toISOString() }]);
+                    }
+                  }}
+                  onDeleteTemplate={(id) => setTemplates(templates.filter(t => t.id !== id))}
+                  onStartFromTemplate={startFromTemplate}
+                />
+              )}
+              
+              {activeTab === 'history' && (
+                <HistoryTab workouts={workouts} exercises={exercises} />
+              )}
+              
+              {activeTab === 'stats' && (
+                <StatsTab workouts={workouts} exercises={exercises} />
+              )}
+              
+              {activeTab === 'goals' && (
+                <GoalsTab 
+                  goals={goals}
+                  onSaveGoal={(goal) => {
+                    if (goal.id && goals.find(g => g.id === goal.id)) {
+                      setGoals(goals.map(g => g.id === goal.id ? goal : g));
+                    } else {
+                      setGoals([...goals, { ...goal, id: Date.now(), createdAt: new Date().toISOString() }]);
+                    }
+                  }}
+                  onDeleteGoal={(id) => setGoals(goals.filter(g => g.id !== id))}
+                />
+              )}
+              
+              {activeTab === 'calendar' && (
+                <CalendarTab workouts={workouts} />
+              )}
+              
+              {activeTab === 'achievements' && (
+                <AchievementsTab unlockedAchievements={unlockedAchievements} />
+              )}
+              
+              {activeTab === 'settings' && (
+                <SettingsTab
+                  exercises={exercises}
+                  userSettings={userSettings}
+                  onSaveUserSettings={(newSettings) => {
+                    setUserSettings(newSettings);
+                    localStorage.setItem('gym_settings', JSON.stringify(newSettings));
+                    alert('Настройки сохранены! ✅');
+                  }}
+                  onAddExercise={(name, group, hasWeight) => {
+                    const id = Date.now();
+                    const newEx = {
+                      id,
+                      name,
+                      group: group || 'Пользовательские',
+                      hasWeight: hasWeight !== undefined ? hasWeight : true,
+                      system: false
+                    };
+                    const updated = [...exercises, newEx];
+                    setExercises(updated);
+                    localStorage.setItem('gym_exercises', JSON.stringify(updated.filter(e => !e.system)));
+                  }}
+                  onDeleteExercise={(id) => {
+                    const ex = exercises.find(e => e.id === id);
+                    if (ex?.system) {
+                      alert('Системные упражнения удалять нельзя');
+                      return;
+                    }
+                    const used = templates.some(t => t.exercises.some(e => e.exerciseId === id));
+                    if (used) {
+                      alert('Нельзя удалить упражнение, используемое в шаблонах');
+                      return;
+                    }
+                    if (confirm(`Удалить «${ex?.name}»?`)) {
+                      const updated = exercises.filter(e => e.id !== id);
+                      setExercises(updated);
+                      localStorage.setItem('gym_exercises', JSON.stringify(updated.filter(e => !e.system)));
+                    }
+                  }}
+                  onExportData={exportData}
+                  onImportData={importData}
+                  onResetData={resetAllData}
+                />
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    }
+
+
+    function WorkoutTab({ currentWorkout, exercises, templates, workouts, userSettings, restTimer, onStartRestTimer, onStopRestTimer, onAdjustRestTimer, onStartWorkout, onFinishWorkout, onCancelWorkout, onUpdateWorkout }) {
+      const [showExerciseModal, setShowExerciseModal] = useState(false);
+      const [showSetModal, setShowSetModal] = useState(false);
+      const [showBodyWeightModal, setShowBodyWeightModal] = useState(false);
+      const [bodyWeightType, setBodyWeightType] = useState('before');
+      const [selectedExerciseId, setSelectedExerciseId] = useState(null);
+      const [weightStr, setWeightStr] = useState('50');
+      const [repsStr, setRepsStr] = useState('10');
+      const [mood, setMood] = useState(2);
+      const [bodyWeightStr, setBodyWeightStr] = useState('70');
+      const [showRestTimerModal, setShowRestTimerModal] = useState(false);
+      const [restTimerMinutes, setRestTimerMinutes] = useState(1);
+      const [restTimerSeconds, setRestTimerSeconds] = useState(30);
+      const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
+
+      // Поиск прошлых подходов упражнения из завершенных тренировок
+      const getPreviousExerciseStats = (exerciseId, exerciseName) => {
+        if (!workouts || workouts.length === 0) return null;
+        for (let i = workouts.length - 1; i >= 0; i--) {
+          const w = workouts[i];
+          const match = w.exercises?.find(e => 
+            (e.exerciseId === exerciseId || (exerciseName && e.exerciseName && e.exerciseName.toLowerCase() === exerciseName.toLowerCase())) &&
+            e.sets && e.sets.length > 0
+          );
+          if (match) {
+            return {
+              date: w.startDate,
+              sets: match.sets
+            };
+          }
+        }
+        return null;
+      };
+
+      const addExerciseToWorkout = (exerciseId) => {
+        if (!currentWorkout) return;
+        
+        const exercise = exercises.find(e => e.id === exerciseId);
+        if (!exercise) return;
+
+        const exists = currentWorkout.exercises.find(e => e.exerciseId === exerciseId);
+        if (exists) {
+          alert('Упражнение уже добавлено в текущую тренировку');
+          return;
+        }
+
+        const templateExercise = templates
+          .flatMap(t => t.exercises)
+          .find(e => e.exerciseId === exerciseId);
+        const defaultRestTime = templateExercise?.restTime || userSettings?.defaultRestTime || 90;
+
+        onUpdateWorkout({
+          ...currentWorkout,
+          exercises: [...currentWorkout.exercises, {
+            exerciseId: exercise.id,
+            exerciseName: exercise.name,
+            hasWeight: checkExerciseHasWeight(exercise),
+            sets: [],
+            restTime: defaultRestTime
+          }]
+        });
+        setShowExerciseModal(false);
+        setExerciseSearchQuery('');
+      };
+
+      const openSetModal = (exerciseId) => {
+        setSelectedExerciseId(exerciseId);
+        const exercise = currentWorkout?.exercises.find(e => e.exerciseId === exerciseId);
+        const exDef = exercises.find(e => e.id === exerciseId);
+        const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(exercise);
+        
+        if (exercise && exercise.sets.length > 0) {
+          const lastSet = exercise.sets[exercise.sets.length - 1];
+          setWeightStr(String(lastSet.weight || 0));
+          setRepsStr(String(lastSet.reps || 10));
+          setMood(lastSet.mood || 2);
+        } else {
+          // Проверяем прошлую тренировку
+          const prev = getPreviousExerciseStats(exerciseId, exercise?.exerciseName);
+          if (prev && prev.sets.length > 0) {
+            const firstSet = prev.sets[0];
+            setWeightStr(String(firstSet.weight || 0));
+            setRepsStr(String(firstSet.reps || 10));
+            setMood(firstSet.mood || 2);
+          } else {
+            setWeightStr(String(hasWeight ? (userSettings?.defaultWeight || 50) : 0));
+            setRepsStr(String(userSettings?.defaultReps || 10));
+            setMood(2);
+          }
+        }
+        setShowSetModal(true);
+      };
+
+      const handleWeightChange = (e) => {
+        const val = e.target.value.replace(',', '.');
+        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+          setWeightStr(val);
+        }
+      };
+
+      const handleRepsChange = (e) => {
+        const val = e.target.value;
+        if (val === '' || /^\d*$/.test(val)) {
+          setRepsStr(val);
+        }
+      };
+
+      const stepWeight = (delta) => {
+        const current = parseFloat(weightStr.replace(',', '.')) || 0;
+        const updated = Math.max(0, Math.round((current + delta) * 10) / 10);
+        setWeightStr(String(updated));
+      };
+
+      const stepReps = (delta) => {
+        const current = parseInt(repsStr, 10) || 0;
+        const updated = Math.max(0, current + delta);
+        setRepsStr(String(updated));
+      };
+
+      const addSet = () => {
+        if (!currentWorkout || selectedExerciseId === null) return;
+        const ex = currentWorkout.exercises.find(e => e.exerciseId === selectedExerciseId);
+        const exDef = exercises.find(e => e.id === selectedExerciseId);
+        const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(ex);
+
+        const parsedReps = parseInt(repsStr, 10);
+        if (!parsedReps || parsedReps <= 0) {
+          alert('Укажите количество повторений больше 0');
+          return;
+        }
+
+        const parsedWeight = hasWeight ? (parseFloat(weightStr.replace(',', '.')) || 0) : 0;
+
+        const newSet = {
+          weight: parsedWeight,
+          reps: parsedReps,
+          mood: mood || 2,
+          timestamp: Date.now()
+        };
+
+        const updated = {
+          ...currentWorkout,
+          exercises: currentWorkout.exercises.map(item =>
+            item.exerciseId === selectedExerciseId
+              ? { ...item, sets: [...item.sets, newSet] }
+              : item
+          )
+        };
+        onUpdateWorkout(updated);
+        setShowSetModal(false);
+
+        // Автоматический запуск таймера отдыха между подходами
+        const restDuration = ex?.restTime || userSettings?.defaultRestTime || 90;
+        onStartRestTimer(restDuration, ex?.exerciseName || '');
+      };
+
+      const addSetSameAsPrevious = () => {
+        if (!currentWorkout || selectedExerciseId === null) return;
+        const ex = currentWorkout.exercises.find(e => e.exerciseId === selectedExerciseId);
+        if (!ex || ex.sets.length === 0) {
+          alert('Нет предыдущих подходов');
+          return;
+        }
+        const lastSet = ex.sets[ex.sets.length - 1];
+        const updated = {
+          ...currentWorkout,
+          exercises: currentWorkout.exercises.map(e =>
+            e.exerciseId === selectedExerciseId
+              ? { ...e, sets: [...e.sets, { ...lastSet, timestamp: Date.now() }] }
+              : e
+          )
+        };
+        onUpdateWorkout(updated);
+        setShowSetModal(false);
+
+        // Автоматический запуск таймера отдыха между подходами
+        const restDuration = ex.restTime || userSettings?.defaultRestTime || 90;
+        onStartRestTimer(restDuration, ex.exerciseName || '');
+      };
+
+      const deleteSet = (exerciseId, setIndex) => {
+        if (!confirm('Удалить подход?')) return;
+        if (!currentWorkout) return;
+        
+        const updated = {
+          ...currentWorkout,
+          exercises: currentWorkout.exercises.map(ex =>
+            ex.exerciseId === exerciseId
+              ? { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) }
+              : ex
+          )
+        };
+        onUpdateWorkout(updated);
+      };
+
+      const openBodyWeightModal = (type) => {
+        setBodyWeightType(type);
+        const current = type === 'before' ? currentWorkout?.bodyWeightBefore : currentWorkout?.bodyWeightAfter;
+        setBodyWeightStr(current ? String(current) : '70');
+        setShowBodyWeightModal(true);
+      };
+
+      const saveBodyWeight = () => {
+        if (!currentWorkout) return;
+        const num = parseFloat(bodyWeightStr.replace(',', '.')) || 0;
+        if (bodyWeightType === 'before') {
+          onUpdateWorkout({ ...currentWorkout, bodyWeightBefore: num });
+        } else {
+          onUpdateWorkout({ ...currentWorkout, bodyWeightAfter: num });
+        }
+        setShowBodyWeightModal(false);
+      };
+
+      const openRestTimerModal = (exerciseId) => {
+        setSelectedExerciseId(exerciseId);
+        const exercise = currentWorkout?.exercises.find(e => e.exerciseId === exerciseId);
+        const currentRest = exercise?.restTime || userSettings?.defaultRestTime || 90;
+        setRestTimerMinutes(Math.floor(currentRest / 60));
+        setRestTimerSeconds(currentRest % 60);
+        setShowRestTimerModal(true);
+      };
+
+      const saveRestTimer = () => {
+        if (!currentWorkout || selectedExerciseId === null) return;
+        const totalSeconds = restTimerMinutes * 60 + restTimerSeconds;
+        const updated = {
+          ...currentWorkout,
+          exercises: currentWorkout.exercises.map(ex =>
+            ex.exerciseId === selectedExerciseId
+              ? { ...ex, restTime: totalSeconds }
+              : ex
+          )
+        };
+        onUpdateWorkout(updated);
+        setShowRestTimerModal(false);
+      };
+
+      const getMoodEmoji = (m) => m === 1 ? '😫' : m === 3 ? '😄' : '😐';
+
+      if (!currentWorkout) {
+        return (
+          <div className="card empty-state">
+            <div className="empty-icon">💪</div>
+            <h2 className="empty-title">Начните тренировку</h2>
+            <p style={{marginBottom: '2rem'}}>Создайте новую тренировку или выберите готовый шаблон</p>
+            <button onClick={onStartWorkout} className="btn btn-primary btn-large">
+              Начать тренировку
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <div>
+          {/* Баннер таймера отдыха между подходами */}
+          {restTimer.isRunning && restTimer.remainingSeconds > 0 && (
+            <div className="card" style={{background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '2px solid #fbbf24', marginBottom: '1rem'}}>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                  <span style={{fontSize: '28px'}}>⏱️</span>
+                  <div>
+                    <h3 style={{fontWeight: 600, color: '#0f172a', marginBottom: '0.25rem'}}>
+                      Отдых {restTimer.exerciseName ? `(${restTimer.exerciseName})` : ''}
+                    </h3>
+                    <p style={{fontSize: '2rem', fontWeight: 700, color: '#b45309', fontFamily: 'Courier New, monospace'}}>
+                      {Math.floor(restTimer.remainingSeconds / 60)}:{(restTimer.remainingSeconds % 60).toString().padStart(2, '0')}
+                    </p>
+                  </div>
+                </div>
+                <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap'}}>
+                  <button onClick={() => onAdjustRestTimer(-30)} className="btn btn-secondary" style={{padding: '0.5rem 0.75rem', fontSize: '0.875rem'}}>
+                    -30с
+                  </button>
+                  <button onClick={() => onAdjustRestTimer(30)} className="btn btn-secondary" style={{padding: '0.5rem 0.75rem', fontSize: '0.875rem'}}>
+                    +30с
+                  </button>
+                  <button onClick={onStopRestTimer} className="btn btn-secondary" style={{color: '#dc2626', fontSize: '0.875rem'}}>
+                    Остановить
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="card" style={{background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #93c5fd'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem'}}>
+              <span style={{fontSize: '20px'}}>⚖️</span>
+              <h3 style={{fontWeight: 600, color: '#0f172a'}}>Вес тела</h3>
+            </div>
+            <div className="grid" style={{gridTemplateColumns: 'repeat(2, 1fr)'}}>
+              <div style={{background: 'white', borderRadius: '12px', padding: '1rem'}}>
+                <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem'}}>До тренировки</p>
+                {currentWorkout.bodyWeightBefore ? (
+                  <p style={{fontSize: '1.5rem', fontWeight: 700, color: '#0f172a'}}>{currentWorkout.bodyWeightBefore.toFixed(1)} кг</p>
+                ) : (
+                  <button onClick={() => openBodyWeightModal('before')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                    Указать вес
+                  </button>
+                )}
+              </div>
+              <div style={{background: 'white', borderRadius: '12px', padding: '1rem'}}>
+                <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem'}}>После тренировки</p>
+                {currentWorkout.bodyWeightAfter ? (
+                  <p style={{fontSize: '1.5rem', fontWeight: 700, color: '#0f172a'}}>{currentWorkout.bodyWeightAfter.toFixed(1)} кг</p>
+                ) : (
+                  <button onClick={() => openBodyWeightModal('after')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                    Указать вес
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3 style={{fontSize: '1.25rem', fontWeight: 700}}>Упражнения</h3>
+              <button onClick={() => setShowExerciseModal(true)} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                <span>➕</span> Добавить
+              </button>
+            </div>
+
+            {currentWorkout.exercises.length === 0 ? (
+              <div className="empty-state" style={{padding: '2rem 0'}}>
+                <div className="empty-icon" style={{fontSize: '3rem'}}>🏋️</div>
+                <h3 className="empty-title">Добавьте упражнения</h3>
+                <p style={{marginBottom: '1.5rem'}}>Начните тренировку с выбора упражнений</p>
+                <button onClick={() => setShowExerciseModal(true)} className="btn btn-primary btn-large">
+                  <span>➕</span> Добавить упражнение
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                  {currentWorkout.exercises.map(ex => {
+                    const exDef = exercises.find(e => e.id === ex.exerciseId);
+                    const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(ex);
+                    const prevStats = getPreviousExerciseStats(ex.exerciseId, ex.exerciseName);
+
+                    return (
+                      <div key={ex.exerciseId} className="exercise-item">
+                        <div style={{marginBottom: '0.5rem'}}>
+                          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem'}}>
+                            <h4 style={{fontWeight: 600, color: '#0f172a', fontSize: '1.05rem'}}>{ex.exerciseName}</h4>
+                            <span style={{fontSize: '0.75rem', color: hasWeight ? '#2563eb' : '#059669', background: hasWeight ? '#eff6ff' : '#ecfdf5', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 500}}>
+                              {hasWeight ? 'С весом' : 'Без веса'}
+                            </span>
+                          </div>
+                          <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem'}}>
+                            <p style={{fontSize: '0.875rem', color: '#64748b'}}>Подходов: {ex.sets.length}</p>
+                            {ex.restTime && (
+                              <>
+                                <span style={{color: '#94a3b8'}}>•</span>
+                                <p style={{fontSize: '0.875rem', color: '#64748b'}}>
+                                  Отдых: {Math.floor(ex.restTime / 60)}:{(ex.restTime % 60).toString().padStart(2, '0')}
+                                </p>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Отображение веса и повторений из прошлой тренировки */}
+                          {prevStats && (
+                            <div style={{background: '#eff6ff', borderRadius: '8px', padding: '0.5rem 0.75rem', margin: '0.5rem 0', border: '1px solid #bfdbfe'}}>
+                              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem'}}>
+                                <span style={{fontSize: '0.75rem', fontWeight: 600, color: '#1e40af'}}>
+                                  ⏮️ В прошлый раз ({new Date(prevStats.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}):
+                                </span>
+                              </div>
+                              <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.375rem', fontSize: '0.8125rem', color: '#1e3a8a'}}>
+                                {prevStats.sets.map((s, sIdx) => (
+                                  <span key={sIdx} style={{background: '#dbeafe', padding: '0.125rem 0.5rem', borderRadius: '4px', fontWeight: 500}}>
+                                    {hasWeight && s.weight > 0 ? `${s.weight} кг × ${s.reps}` : `${s.reps} повт.`}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {ex.sets.length > 0 && (
+                          <div style={{background: '#f8fafc', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem'}}>
+                            {ex.sets.map((set, idx) => (
+                              <div key={idx} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: idx < ex.sets.length - 1 ? '0.5rem' : 0}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                                  <span style={{fontWeight: 500, color: '#475569'}}>
+                                    {idx + 1}. {hasWeight && set.weight > 0 ? `${set.weight} кг × ${set.reps} повт.` : `${set.reps} повт.`}
+                                  </span>
+                                  <span>{getMoodEmoji(set.mood)}</span>
+                                </div>
+                                <button onClick={() => deleteSet(ex.exerciseId, idx)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem'}}>
+                                  🗑️
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                          <button onClick={() => openSetModal(ex.exerciseId)} className="btn btn-secondary" style={{fontSize: '0.875rem', flex: 1, justifyContent: 'center'}}>
+                            <span>➕</span> Подход
+                          </button>
+                          <button onClick={() => openRestTimerModal(ex.exerciseId)} className="btn btn-secondary" style={{fontSize: '0.875rem'}} title="Таймер отдыха">
+                            ⏱️
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Кнопка добавления упражнения внизу списка, чтобы не нужно было листать наверх */}
+                <div style={{marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0'}}>
+                  <button 
+                    onClick={() => setShowExerciseModal(true)} 
+                    className="btn btn-primary btn-large" 
+                    style={{width: '100%', justifyContent: 'center', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)'}}
+                  >
+                    <span>➕</span> Добавить упражнение
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="card">
+            <h3 style={{fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem'}}>Быстрый таймер отдыха</h3>
+            <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+              <button onClick={() => onStartRestTimer(30, 'Быстрый таймер')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                30 сек
+              </button>
+              <button onClick={() => onStartRestTimer(60, 'Быстрый таймер')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                1 мин
+              </button>
+              <button onClick={() => onStartRestTimer(90, 'Быстрый таймер')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                1.5 мин
+              </button>
+              <button onClick={() => onStartRestTimer(120, 'Быстрый таймер')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                2 мин
+              </button>
+              <button onClick={() => onStartRestTimer(180, 'Быстрый таймер')} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                3 мин
+              </button>
+            </div>
+          </div>
+
+          <div className="card">
+            <div style={{display: 'flex', gap: '0.75rem', flexDirection: 'column'}}>
+              <button onClick={onFinishWorkout} className="btn btn-success btn-large" style={{width: '100%', justifyContent: 'center'}}>
+                <span>✅</span> Завершить тренировку
+              </button>
+              <button onClick={onCancelWorkout} className="btn btn-warning btn-large" style={{width: '100%', justifyContent: 'center'}}>
+                <span>❌</span> Отменить тренировку
+              </button>
+            </div>
+          </div>
+
+          {/* Модальное окно выбора упражнения с мгновенным поиском */}
+          {showExerciseModal && (
+            <Modal onClose={() => { setShowExerciseModal(false); setExerciseSearchQuery(''); }} title="Добавить упражнение">
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh'}}>
+                <input
+                  type="text"
+                  placeholder="🔍 Поиск (например: становая тяга, приседания)..."
+                  value={exerciseSearchQuery}
+                  onChange={e => setExerciseSearchQuery(e.target.value)}
+                  className="input"
+                  autoFocus
+                />
+                <div style={{overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
+                  {(() => {
+                    const q = exerciseSearchQuery.trim().toLowerCase();
+                    const filtered = q 
+                      ? exercises.filter(e => e.name.toLowerCase().includes(q) || (e.group && e.group.toLowerCase().includes(q)))
+                      : exercises;
+
+                    if (filtered.length === 0) {
+                      return (
+                        <p style={{padding: '1.5rem 1rem', textAlign: 'center', color: '#64748b'}}>
+                          Упражнение не найдено. Вы можете создать его в разделе «Настройки».
+                        </p>
+                      );
+                    }
+
+                    const grouped = {};
+                    filtered.forEach(ex => {
+                      const group = ex.group || 'Пользовательские';
+                      if (!grouped[group]) grouped[group] = [];
+                      grouped[group].push(ex);
+                    });
+
+                    return Object.entries(grouped).map(([group, exList]) => (
+                      <div key={group}>
+                        <h4 style={{fontWeight: 600, color: '#475569', marginBottom: '0.5rem', marginTop: '0.75rem', textTransform: 'uppercase', fontSize: '0.8125rem'}}>
+                          {group}
+                        </h4>
+                        {exList.map(exercise => {
+                          const isNoWeight = !checkExerciseHasWeight(exercise);
+                          return (
+                            <button
+                              key={exercise.id}
+                              onClick={() => addExerciseToWorkout(exercise.id)}
+                              className="btn btn-secondary"
+                              style={{width: '100%', marginBottom: '0.5rem', justifyContent: 'space-between', textAlign: 'left'}}
+                            >
+                              <span style={{fontWeight: 500}}>{exercise.name}</span>
+                              <span style={{fontSize: '0.75rem', color: isNoWeight ? '#059669' : '#2563eb', background: isNoWeight ? '#ecfdf5' : '#eff6ff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 500}}>
+                                {isNoWeight ? 'Без веса' : 'С весом'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </Modal>
+          )}
+
+          {/* Модальное окно добавления подхода */}
+          {showSetModal && selectedExerciseId !== null && (() => {
+            const ex = currentWorkout?.exercises.find(e => e.exerciseId === selectedExerciseId);
+            const exDef = exercises.find(e => e.id === selectedExerciseId);
+            const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(ex);
+            const prevStats = getPreviousExerciseStats(selectedExerciseId, ex?.exerciseName);
+
+            return (
+              <Modal onClose={() => setShowSetModal(false)} title={`Подход: ${ex?.exerciseName || ''}`}>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1.25rem'}}>
+                  
+                  {/* Прошлый результат тренировки для подсказки */}
+                  {prevStats && (
+                    <div style={{background: '#eff6ff', borderRadius: '10px', padding: '0.75rem', border: '1px solid #bfdbfe'}}>
+                      <p style={{fontSize: '0.8125rem', fontWeight: 600, color: '#1e40af', marginBottom: '0.375rem'}}>
+                        ⏮️ В прошлый раз ({new Date(prevStats.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}):
+                      </p>
+                      <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginBottom: '0.375rem'}}>
+                        {prevStats.sets.map((s, sIdx) => (
+                          <button
+                            key={sIdx}
+                            type="button"
+                            onClick={() => {
+                              if (hasWeight) setWeightStr(String(s.weight || 0));
+                              setRepsStr(String(s.reps || 10));
+                              if (s.mood) setMood(s.mood);
+                            }}
+                            className="btn btn-secondary"
+                            style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#dbeafe', border: '1px solid #93c5fd', color: '#1e40af'}}
+                            title="Нажмите, чтобы скопировать вес и повторения"
+                          >
+                            {sIdx + 1}: {hasWeight && s.weight > 0 ? `${s.weight} кг × ${s.reps}` : `${s.reps} повт.`}
+                          </button>
+                        ))}
+                      </div>
+                      <p style={{fontSize: '0.6875rem', color: '#64748b'}}>💡 Нажмите на подход выше, чтобы подставить его значения</p>
+                    </div>
+                  )}
+
+                  {/* Ввод веса - только для упражнений с весом */}
+                  {hasWeight ? (
+                    <div className="form-group" style={{marginBottom: 0}}>
+                      <label className="label">Вес (кг) — можно вводить точку или запятую</label>
+                      <div className="input-row">
+                        <button 
+                          onClick={() => stepWeight(-2.5)} 
+                          className="counter-btn-large"
+                          type="button"
+                          aria-label="Уменьшить вес"
+                        >
+                          ▼
+                        </button>
+                        <input 
+                          type="text" 
+                          inputMode="decimal"
+                          value={weightStr} 
+                          onChange={handleWeightChange} 
+                          className="counter-input"
+                          style={{flex: 1, minWidth: 0}}
+                          placeholder="0"
+                        />
+                        <button 
+                          onClick={() => stepWeight(2.5)} 
+                          className="counter-btn-large"
+                          type="button"
+                          aria-label="Увеличить вес"
+                        >
+                          ▲
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{padding: '0.75rem 1rem', background: '#ecfdf5', borderRadius: '10px', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                      <span style={{fontSize: '1.25rem'}}>🤸</span>
+                      <span>Упражнение с собственным весом (без отягощения)</span>
+                    </div>
+                  )}
+
+                  {/* Ввод повторений */}
+                  <div className="form-group" style={{marginBottom: 0}}>
+                    <label className="label">Повторения</label>
+                    <div className="input-row">
+                      <button 
+                        onClick={() => stepReps(-1)} 
+                        className="counter-btn-large"
+                        type="button"
+                        aria-label="Уменьшить повторения"
+                      >
+                        ▼
+                      </button>
+                      <input 
+                        type="text" 
+                        inputMode="numeric"
+                        value={repsStr} 
+                        onChange={handleRepsChange} 
+                        className="counter-input"
+                        style={{flex: 1, minWidth: 0}}
+                        placeholder="10"
+                      />
+                      <button 
+                        onClick={() => stepReps(1)} 
+                        className="counter-btn-large"
+                        type="button"
+                        aria-label="Увеличить повторения"
+                      >
+                        ▲
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Самочувствие */}
+                  <div className="form-group" style={{marginBottom: 0}}>
+                    <label className="label">Самочувствие</label>
+                    <div style={{display: 'flex', gap: '0.5rem'}}>
+                      {[1, 2, 3].map(m => (
+                        <button
+                          key={m}
+                          onClick={() => setMood(m)}
+                          type="button"
+                          className="btn"
+                          style={{
+                            flex: 1,
+                            background: mood === m ? '#2563eb' : '#f1f5f9',
+                            color: mood === m ? 'white' : '#475569',
+                            border: 'none',
+                            fontSize: '2rem',
+                            padding: '0.75rem'
+                          }}
+                        >
+                          {m === 1 ? '😫' : m === 3 ? '😄' : '😐'}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem', color: '#64748b'}}>
+                      <span>Тяжело</span>
+                      <span>Нормально</span>
+                      <span>Легко</span>
+                    </div>
+                  </div>
+
+                  <div style={{display: 'flex', gap: '0.5rem', marginTop: '0.5rem'}}>
+                    <button onClick={addSet} className="btn btn-primary" style={{flex: 1, justifyContent: 'center'}}>
+                      Добавить подход
+                    </button>
+                    {ex && ex.sets.length > 0 && (
+                      <button onClick={addSetSameAsPrevious} className="btn btn-secondary" style={{flex: 1, justifyContent: 'center'}}>
+                        Как предыдущий
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </Modal>
+            );
+          })()}
+
+          {/* Модальное окно веса тела */}
+          {showBodyWeightModal && (
+            <Modal onClose={() => setShowBodyWeightModal(false)} title={`Вес тела ${bodyWeightType === 'before' ? 'до' : 'после'} тренировки`}>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+                <div className="form-group">
+                  <label className="label">Вес (кг) — можно вводить точку или запятую</label>
+                  <input 
+                    type="text" 
+                    inputMode="decimal"
+                    value={bodyWeightStr} 
+                    onChange={e => {
+                      const val = e.target.value.replace(',', '.');
+                      if (val === '' || /^\d*\.?\d*$/.test(val)) setBodyWeightStr(val);
+                    }} 
+                    className="input" 
+                    placeholder="70.0"
+                  />
+                </div>
+                <button onClick={saveBodyWeight} className="btn btn-primary" style={{justifyContent: 'center'}}>
+                  Сохранить
+                </button>
+              </div>
+            </Modal>
+          )}
+
+          {/* Модальное окно таймера отдыха для упражнения */}
+          {showRestTimerModal && selectedExerciseId !== null && (() => {
+            const ex = currentWorkout?.exercises.find(e => e.exerciseId === selectedExerciseId);
+            const currentDuration = ex?.restTime || userSettings?.defaultRestTime || 90;
+            return (
+              <Modal onClose={() => setShowRestTimerModal(false)} title={`Таймер отдыха: ${ex?.exerciseName || ''}`}>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1.25rem'}}>
+                  
+                  {/* Кнопка мгновенного запуска таймера */}
+                  <div style={{textAlign: 'center', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0'}}>
+                    <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem'}}>
+                      Установленное время отдыха для этого упражнения:
+                    </p>
+                    <p style={{fontSize: '2rem', fontWeight: 700, color: '#2563eb', fontFamily: 'Courier New, monospace', marginBottom: '1rem'}}>
+                      {Math.floor(currentDuration / 60)}:{(currentDuration % 60).toString().padStart(2, '0')}
+                    </p>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        onStartRestTimer(currentDuration, ex?.exerciseName);
+                        setShowRestTimerModal(false);
+                      }} 
+                      className="btn btn-primary btn-large"
+                      style={{width: '100%', justifyContent: 'center'}}
+                    >
+                      <span>▶️</span> Запустить отдых ({currentDuration} сек)
+                    </button>
+                  </div>
+
+                  {/* Быстрый выбор другого времени */}
+                  <div>
+                    <label className="label">Быстрый запуск на другое время:</label>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem'}}>
+                      {[30, 45, 60, 90, 120, 180].map(sec => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => {
+                            onStartRestTimer(sec, ex?.exerciseName);
+                            setShowRestTimerModal(false);
+                          }}
+                          className="btn btn-secondary"
+                          style={{justifyContent: 'center', fontSize: '0.875rem'}}
+                        >
+                          {sec < 60 ? `${sec} сек` : `${sec / 60} мин`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Настройка времени по умолчанию для этого упражнения */}
+                  <div style={{borderTop: '1px solid #e2e8f0', paddingTop: '1rem'}}>
+                    <label className="label">Задать время по умолчанию для «{ex?.exerciseName}»:</label>
+                    <div style={{display: 'flex', gap: '0.5rem', marginBottom: '0.75rem'}}>
+                      <div style={{flex: 1}}>
+                        <span style={{fontSize: '0.75rem', color: '#64748b'}}>Минуты</span>
+                        <input 
+                          type="number" 
+                          min="0" 
+                          max="30"
+                          value={restTimerMinutes} 
+                          onChange={e => setRestTimerMinutes(Math.max(0, parseInt(e.target.value) || 0))} 
+                          className="input" 
+                        />
+                      </div>
+                      <div style={{flex: 1}}>
+                        <span style={{fontSize: '0.75rem', color: '#64748b'}}>Секунды</span>
+                        <input 
+                          type="number" 
+                          min="0" 
+                          max="59" 
+                          value={restTimerSeconds} 
+                          onChange={e => setRestTimerSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))} 
+                          className="input" 
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={saveRestTimer} 
+                      className="btn btn-secondary" 
+                      style={{width: '100%', justifyContent: 'center'}}
+                    >
+                      Сохранить время для упражнения
+                    </button>
+                  </div>
+
+                </div>
+              </Modal>
+            );
+          })()}
+        </div>
+      );
+    }
+
+    function TemplatesTab({ templates, exercises, onSaveTemplate, onDeleteTemplate, onStartFromTemplate }) {
+      const [showModal, setShowModal] = useState(false);
+      const [showViewModal, setShowViewModal] = useState(false);
+      const [editingTemplate, setEditingTemplate] = useState(null);
+      const [viewingTemplate, setViewingTemplate] = useState(null);
+      const [templateName, setTemplateName] = useState('');
+      const [selectedExercises, setSelectedExercises] = useState(new Set());
+      const [searchQuery, setSearchQuery] = useState('');
+      const [exerciseRestTimes, setExerciseRestTimes] = useState({});
+
+      const openCreateModal = () => {
+        setEditingTemplate(null);
+        setTemplateName('');
+        setSelectedExercises(new Set());
+        setSearchQuery('');
+        setExerciseRestTimes({});
+        setShowModal(true);
+      };
+
+      const openEditModal = (template) => {
+        setEditingTemplate(template);
+        setTemplateName(template.name);
+        setSelectedExercises(new Set(template.exercises.map(e => e.exerciseId)));
+        setSearchQuery('');
+        const restTimes = {};
+        template.exercises.forEach(e => {
+          if (e.restTime) {
+            restTimes[e.exerciseId] = e.restTime;
+          }
+        });
+        setExerciseRestTimes(restTimes);
+        setShowModal(true);
+      };
+
+      const openViewModal = (template) => {
+        setViewingTemplate(template);
+        setShowViewModal(true);
+      };
+
+      const saveTemplate = () => {
+        if (!templateName.trim()) {
+          alert('Введите название тренировки');
+          return;
+        }
+        if (selectedExercises.size === 0) {
+          alert('Выберите хотя бы одно упражнение');
+          return;
+        }
+
+        const template = {
+          id: editingTemplate?.id || Date.now(),
+          name: templateName,
+          exercises: Array.from(selectedExercises).map(id => {
+            const ex = exercises.find(e => e.id === id);
+            return { 
+              exerciseId: id, 
+              exerciseName: ex.name,
+              restTime: exerciseRestTimes[id] || null
+            };
+          }),
+          createdAt: editingTemplate?.createdAt || new Date().toISOString()
+        };
+
+        onSaveTemplate(template);
+        setShowModal(false);
+        alert(`Шаблон «${templateName}» сохранён!`);
+      };
+
+      const setRestTimeForExercise = (exerciseId) => {
+        const minutes = prompt('Минуты отдыха:', '1');
+        const seconds = prompt('Секунды отдыха:', '30');
+        if (minutes !== null && seconds !== null) {
+          const totalSeconds = parseInt(minutes) * 60 + parseInt(seconds);
+          setExerciseRestTimes({...exerciseRestTimes, [exerciseId]: totalSeconds});
+        }
+      };
+
+      const filteredExercises = searchQuery
+        ? exercises.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : exercises;
+
+      const groupedExercises = {};
+      filteredExercises.forEach(ex => {
+        const group = ex.group || 'Прочие';
+        if (!groupedExercises[group]) groupedExercises[group] = [];
+        groupedExercises[group].push(ex);
+      });
+
+      return (
+        <div>
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Шаблоны тренировок</h2>
+              <button onClick={openCreateModal} className="btn btn-primary">
+                <span>➕</span> Создать шаблон
+              </button>
+            </div>
+
+            {templates.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📅</div>
+                <h3 className="empty-title">Нет шаблонов</h3>
+                <p>Создайте первый шаблон тренировки</p>
+              </div>
+            ) : (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                {templates.map(template => (
+                  <div key={template.id} className="exercise-item">
+                    <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem'}}>
+                      <div style={{flex: 1}}>
+                        <h3 style={{fontWeight: 600, fontSize: '1.125rem', color: '#0f172a', marginBottom: '0.25rem'}}>{template.name}</h3>
+                        <p style={{fontSize: '0.875rem', color: '#64748b'}}>{template.exercises.length} упражнений</p>
+                      </div>
+                      <button onClick={() => { if (confirm('Удалить шаблон?')) { onDeleteTemplate(template.id); } }} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.25rem'}}>
+                        🗑️
+                      </button>
+                    </div>
+                    <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem'}}>
+                      {template.exercises.map(e => e.exerciseName).join(', ')}
+                    </p>
+                    <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                      <button onClick={() => openViewModal(template)} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                        <span>👁️</span> Посмотреть
+                      </button>
+                      <button onClick={() => openEditModal(template)} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                        <span>✏️</span> Изменить
+                      </button>
+                      <button onClick={() => onStartFromTemplate(template.id)} className="btn btn-success" style={{fontSize: '0.875rem', marginLeft: 'auto'}}>
+                        <span>▶️</span> Начать
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {showModal && (
+            <Modal onClose={() => setShowModal(false)} title={editingTemplate ? 'Редактировать шаблон' : 'Создать шаблон тренировки'}>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+                <div className="form-group">
+                  <label className="label">Название тренировки</label>
+                  <input type="text" value={templateName} onChange={e => setTemplateName(e.target.value)} placeholder="Например: Грудь и трицепс" className="input" />
+                </div>
+
+                <div className="form-group">
+                  <label className="label">Поиск упражнений</label>
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Введите название упражнения..." className="input" />
+                </div>
+
+                <div className="form-group">
+                  <label className="label">Выберите упражнения</label>
+                  <div style={{maxHeight: '40vh', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem'}}>
+                    {Object.entries(groupedExercises).map(([group, exList]) => (
+                      <div key={group} style={{marginBottom: '1rem'}}>
+                        <h4 style={{fontWeight: 600, color: '#475569', fontSize: '0.875rem', textTransform: 'uppercase', marginBottom: '0.5rem'}}>{group}</h4>
+                        {exList.map(ex => (
+                          <div key={ex.id} style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem'}}>
+                            <input
+                              type="checkbox"
+                              checked={selectedExercises.has(ex.id)}
+                              onChange={() => {
+                                const updated = new Set(selectedExercises);
+                                if (updated.has(ex.id)) {
+                                  updated.delete(ex.id);
+                                  const newRestTimes = {...exerciseRestTimes};
+                                  delete newRestTimes[ex.id];
+                                  setExerciseRestTimes(newRestTimes);
+                                } else {
+                                  updated.add(ex.id);
+                                }
+                                setSelectedExercises(updated);
+                              }}
+                              style={{width: '18px', height: '18px', cursor: 'pointer'}}
+                            />
+                            <label style={{flex: 1, cursor: 'pointer', fontSize: '0.875rem', color: '#0f172a'}}>
+                              {ex.name}
+                            </label>
+                            {selectedExercises.has(ex.id) && (
+                              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                                {exerciseRestTimes[ex.id] && (
+                                  <span style={{fontSize: '0.75rem', color: '#64748b'}}>
+                                    ⏱️ {Math.floor(exerciseRestTimes[ex.id] / 60)}:{(exerciseRestTimes[ex.id] % 60).toString().padStart(2, '0')}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => setRestTimeForExercise(ex.id)}
+                                  style={{background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem'}}
+                                  title="Установить таймер отдыха"
+                                >
+                                  ⏱️
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={saveTemplate} className="btn btn-primary">
+                  {editingTemplate ? 'Сохранить изменения' : 'Создать шаблон'}
+                </button>
+              </div>
+            </Modal>
+          )}
+
+          {showViewModal && viewingTemplate && (
+            <Modal onClose={() => setShowViewModal(false)} title={viewingTemplate.name}>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                {viewingTemplate.exercises.map((ex, idx) => (
+                  <div key={idx} style={{padding: '0.75rem', background: '#f8fafc', borderRadius: '8px'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <span style={{fontWeight: 500, color: '#0f172a'}}>{idx + 1}. {ex.exerciseName}</span>
+                      {ex.restTime && (
+                        <span style={{fontSize: '0.875rem', color: '#64748b'}}>
+                          ⏱️ {Math.floor(ex.restTime / 60)}:{(ex.restTime % 60).toString().padStart(2, '0')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    const MUSCLE_GROUP_COLORS = {
+      'Спина': '#3b82f6',
+      'Грудь': '#ef4444',
+      'Ноги': '#10b981',
+      'Плечи': '#f59e0b',
+      'Бицепс': '#8b5cf6',
+      'Трицепс': '#ec4899',
+      'Пресс': '#06b6d4',
+      'Прочие': '#64748b'
+    };
+
+    const CORE_MUSCLE_GROUPS = ['Ноги', 'Спина', 'Грудь', 'Плечи', 'Пресс', 'Бицепс', 'Трицепс'];
+
+    function MuscleBalanceCard({ workouts, exercises }) {
+      const now = Date.now();
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      const weekWorkouts = (workouts || []).filter(w => {
+        const t = new Date(w.endDate || w.startDate).getTime();
+        return !isNaN(t) && (now - t) <= sevenDaysMs;
+      });
+
+      const groupSets = {};
+      let totalWeekSets = 0;
+
+      weekWorkouts.forEach(w => {
+        (w.exercises || []).forEach(ex => {
+          const exDef = exercises.find(e => e.id === ex.exerciseId) || exercises.find(e => e.name === ex.exerciseName);
+          const grp = (exDef && exDef.group) || ex.group || 'Прочие';
+          const count = (ex.sets || []).length;
+          if (count > 0) {
+            groupSets[grp] = (groupSets[grp] || 0) + count;
+            totalWeekSets += count;
+          }
+        });
+      });
+
+      const activeGroups = Object.entries(groupSets)
+        .map(([group, count]) => {
+          const percentage = totalWeekSets > 0 ? Math.round((count / totalWeekSets) * 100) : 0;
+          return {
+            group,
+            count,
+            percentage,
+            color: MUSCLE_GROUP_COLORS[group] || '#6366f1'
+          };
+        })
+        .sort((a, b) => b.count - a.count);
+
+      const radius = 38;
+      const circumference = 2 * Math.PI * radius;
+      let currentOffset = 0;
+      const donutSegments = activeGroups.map(item => {
+        const ratio = totalWeekSets > 0 ? item.count / totalWeekSets : 0;
+        const len = ratio * circumference;
+        const seg = {
+          ...item,
+          length: len,
+          offset: currentOffset
+        };
+        currentOffset += len;
+        return seg;
+      });
+
+      const missingCore = CORE_MUSCLE_GROUPS.filter(g => !groupSets[g] || groupSets[g] === 0);
+
+      const formatSets = (n) => {
+        const m10 = n % 10;
+        const m100 = n % 100;
+        if (m100 >= 11 && m100 <= 19) return 'подходов';
+        if (m10 === 1) return 'подход';
+        if (m10 >= 2 && m10 <= 4) return 'подхода';
+        return 'подходов';
+      };
+
+      return (
+        <div className="card" style={{ padding: '1.25rem', marginBottom: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span>⚖️</span> Баланс мышечных групп
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                Распределение за последние 7 дней
+              </div>
+            </div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '4px 10px', borderRadius: '999px', border: '1px solid #dbeafe', whiteSpace: 'nowrap' }}>
+              {totalWeekSets} {formatSets(totalWeekSets)}
+            </span>
+          </div>
+
+          {totalWeekSets === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.4rem' }}>📊</div>
+              <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>Нет данных за последние 7 дней</div>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                Завершите тренировку, чтобы увидеть баланс нагрузки на мышцы
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ height: '10px', width: '100%', borderRadius: '5px', overflow: 'hidden', display: 'flex', marginBottom: '1.25rem', background: '#f1f5f9', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)' }}>
+                {activeGroups.map((item, idx) => (
+                  <div
+                    key={item.group}
+                    style={{
+                      height: '100%',
+                      width: `${(item.count / totalWeekSets) * 100}%`,
+                      background: item.color,
+                      borderRight: idx < activeGroups.length - 1 ? '1.5px solid white' : 'none',
+                      transition: 'width 0.4s ease'
+                    }}
+                    title={`${item.group}: ${item.count} подх. (${item.percentage}%)`}
+                  />
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
+                <div style={{ position: 'relative', width: '130px', height: '130px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="130" height="130" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#f1f5f9" strokeWidth="12" />
+                    {donutSegments.map(seg => (
+                      <circle
+                        key={seg.group}
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        fill="transparent"
+                        stroke={seg.color}
+                        strokeWidth="12"
+                        strokeDasharray={`${seg.length} ${circumference}`}
+                        strokeDashoffset={-seg.offset}
+                        strokeLinecap="butt"
+                      />
+                    ))}
+                  </svg>
+                  <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+                      {totalWeekSets}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '3px' }}>
+                      подходов
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ flex: '1 1 200px', minWidth: '175px', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  {activeGroups.map(item => (
+                    <div key={item.group} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.color, flexShrink: 0 }}></span>
+                          <span style={{ fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.group}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, marginLeft: '0.5rem' }}>
+                          <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{item.count} подх.</span>
+                          <span style={{ fontWeight: 700, color: '#0f172a', minWidth: '32px', textAlign: 'right' }}>{item.percentage}%</span>
+                        </div>
+                      </div>
+                      <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${item.percentage}%`, background: item.color, borderRadius: '3px', transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {missingCore.includes('Ноги') ? (
+                <div style={{ marginTop: '1rem', padding: '0.65rem 0.85rem', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#991b1b' }}>
+                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⚠️</span>
+                  <div>
+                    <strong>Пропущен день ног:</strong> за последние 7 дней не зафиксировано ни одного подхода на ноги.
+                  </div>
+                </div>
+              ) : missingCore.length > 0 && missingCore.length <= 4 ? (
+                <div style={{ marginTop: '1rem', padding: '0.65rem 0.85rem', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#92400e' }}>
+                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>💡</span>
+                  <div>
+                    <strong>Отстающие зоны (0 подходов):</strong> {missingCore.join(', ')}.
+                  </div>
+                </div>
+              ) : missingCore.length === 0 ? (
+                <div style={{ marginTop: '1rem', padding: '0.65rem 0.85rem', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#166534' }}>
+                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>✅</span>
+                  <div>
+                    <strong>Отличный баланс!</strong> Все ключевые группы мышц получили нагрузку за последние 7 дней.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function HistoryTab({ workouts, exercises }) {
+      const [expandedId, setExpandedId] = useState(null);
+      const [showShareModal, setShowShareModal] = useState(false);
+      const [sharingWorkout, setSharingWorkout] = useState(null);
+
+      /* Изменена функция getMoodEmoji для 3 смайликов */
+      const getMoodEmoji = (m) => m === 1 ? '😫' : m === 3 ? '😄' : '😐';
+      /* </CHANGE> */
+
+      const generateWorkoutShareText = (workout) => {
+        const start = new Date(workout.startDate);
+        const end = workout.endDate ? new Date(workout.endDate) : null;
+        const duration = end ? Math.round((end.getTime() - start.getTime()) / 60000) : 0;
+        const totalVolume = workout.exercises.reduce(
+          (sum, ex) => sum + ex.sets.reduce((s, set) => s + (set.weight || 0) * set.reps, 0),
+          0
+        );
+        
+        let text = `💪 GymFlow - Моя тренировка\n\n`;
+        text += `📅 ${start.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}\n`;
+        text += `🏋️ ${workout.templateName}\n`;
+        text += `⏱️ ${duration} мин\n`;
+        text += `⚖️ ${(totalVolume / 1000).toFixed(1)} тонн\n`;
+        if (workout.overallMood) {
+          text += `${getMoodEmoji(workout.overallMood)} Самочувствие: ${workout.overallMood}/3\n`;
+        }
+        text += `\n📋 Упражнения:\n`;
+        workout.exercises.forEach((ex, idx) => {
+          const exDef = exercises.find(e => e.id === ex.exerciseId);
+          const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(ex);
+          text += `\n${idx + 1}. ${ex.exerciseName}\n`;
+          ex.sets.forEach((set, setIdx) => {
+            const setStr = hasWeight && set.weight > 0 ? `${set.weight} кг × ${set.reps} повт.` : `${set.reps} повт.`;
+            text += `   ${setIdx + 1}. ${setStr}\n`;
+          });
+        });
+        
+        if (workout.notes) {
+          text += `\n📝 Заметки: ${workout.notes}\n`;
+        }
+        
+        return text;
+      };
+
+      const shareWorkout = (workout) => {
+        setSharingWorkout(workout);
+        setShowShareModal(true);
+      };
+
+      const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('📋 Скопировано в буфер обмена!');
+        }).catch(() => {
+          alert('Не удалось скопировать. Попробуйте снова.');
+        });
+      };
+
+      if (workouts.length === 0) {
+        return (
+          <div className="card empty-state">
+            <div className="empty-icon">📈</div>
+            <h3 className="empty-title">История пуста</h3>
+            <p>Завершите первую тренировку</p>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+          <MuscleBalanceCard workouts={workouts} exercises={exercises} />
+
+          {[...workouts].reverse().map(workout => {
+            const start = new Date(workout.startDate);
+            const end = workout.endDate ? new Date(workout.endDate) : null;
+            const duration = end ? Math.round((end.getTime() - start.getTime()) / 60000) : 0;
+            const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+            const totalVolume = workout.exercises.reduce(
+              (sum, ex) => sum + ex.sets.reduce((s, set) => s + (set.weight || 0) * set.reps, 0),
+              0
+            );
+
+            return (
+              <div key={workout.id} className="card" style={{padding: 0, overflow: 'hidden'}}>
+                <button
+                  onClick={() => setExpandedId(expandedId === workout.id ? null : workout.id)}
+                  style={{width: '100%', padding: '1.5rem', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer'}}
+                >
+                  <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                      <span style={{fontWeight: 600, color: '#0f172a'}}>
+                        {start.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                      </span>
+                      {workout.overallMood && (
+                        <span style={{fontSize: '1.25rem'}}>{getMoodEmoji(workout.overallMood)}</span>
+                      )}
+                    </div>
+                    <span style={{fontSize: '1.25rem', color: '#94a3b8', transition: 'transform 0.2s', transform: expandedId === workout.id ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+                      🔽
+                    </span>
+                  </div>
+                  <p style={{fontSize: '0.875rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem'}}>{workout.templateName}</p>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.875rem', color: '#64748b'}}>
+                    <span>{start.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span>
+                    {end && <><span>•</span><span>{end.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</span></>}
+                    <span>•</span>
+                    <span>{workout.exercises.length} упражнений</span>
+                    <span>•</span>
+                    <span>{totalSets} подходов</span>
+                    <span>•</span>
+                    <span>{(totalVolume / 1000).toFixed(1)} тонн</span>
+                    {duration > 0 && <><span>•</span><span>{duration} мин</span></>}
+                    {workout.bodyWeightAfter && <><span>•</span><span>{workout.bodyWeightAfter.toFixed(1)} кг</span></>}
+                  </div>
+                </button>
+
+                {expandedId === workout.id && (
+                  <div style={{padding: '0 1.5rem 1.5rem 1.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                    <button onClick={() => shareWorkout(workout)} className="btn btn-primary" style={{fontSize: '0.875rem', marginBottom: '0.5rem'}}>
+                      <span>📤</span> Поделиться тренировкой
+                    </button>
+                    
+                    {workout.exercises.map(ex => {
+                      const exDef = exercises.find(e => e.id === ex.exerciseId);
+                      const hasWeight = exDef ? checkExerciseHasWeight(exDef) : checkExerciseHasWeight(ex);
+
+                      return (
+                        <div key={ex.exerciseId} style={{background: '#f8fafc', borderRadius: '8px', padding: '1rem'}}>
+                          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem'}}>
+                            <h4 style={{fontWeight: 500, color: '#0f172a'}}>{ex.exerciseName}</h4>
+                            <span style={{fontSize: '0.75rem', color: hasWeight ? '#2563eb' : '#059669', background: hasWeight ? '#eff6ff' : '#ecfdf5', padding: '0.15rem 0.4rem', borderRadius: '4px'}}>
+                              {hasWeight ? 'С весом' : 'Без веса'}
+                            </span>
+                          </div>
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '0.25rem'}}>
+                            {ex.sets.map((set, idx) => (
+                              <div key={idx} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem'}}>
+                                <div>
+                                  <span style={{color: '#64748b'}}>
+                                    {idx + 1}. {hasWeight && set.weight > 0 ? `${set.weight} кг × ${set.reps} повт.` : `${set.reps} повт.`}
+                                  </span>
+                                  <span style={{fontSize: '0.75rem', color: '#94a3b8', marginLeft: '0.5rem'}}>
+                                    {new Date(set.timestamp).toLocaleTimeString('ru-RU')}
+                                  </span>
+                                </div>
+                                {set.mood && <span>{getMoodEmoji(set.mood)}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {(workout.bodyWeightBefore || workout.bodyWeightAfter) && (
+                      <div style={{background: '#eff6ff', borderRadius: '8px', padding: '1rem'}}>
+                        <p style={{fontWeight: 500, color: '#0f172a', marginBottom: '0.25rem'}}>Вес тела:</p>
+                        <p style={{fontSize: '0.875rem', color: '#64748b'}}>
+                          {workout.bodyWeightBefore && `До: ${workout.bodyWeightBefore.toFixed(1)} кг`}
+                          {workout.bodyWeightBefore && workout.bodyWeightAfter && ' → '}
+                          {workout.bodyWeightAfter && `После: ${workout.bodyWeightAfter.toFixed(1)} кг`}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {workout.notes && (
+                      <div style={{background: '#fef3c7', borderRadius: '8px', padding: '1rem'}}>
+                        <p style={{fontWeight: 500, color: '#0f172a', marginBottom: '0.5rem'}}>📝 Заметки:</p>
+                        <p style={{fontSize: '0.875rem', color: '#78350f', whiteSpace: 'pre-wrap'}}>{workout.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          
+          {showShareModal && sharingWorkout && (
+            <Modal onClose={() => setShowShareModal(false)} title="Поделиться тренировкой">
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                <textarea
+                  value={generateWorkoutShareText(sharingWorkout)}
+                  readOnly
+                  style={{
+                    width: '100%',
+                    minHeight: '300px',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.875rem',
+                    fontFamily: 'monospace',
+                    resize: 'vertical'
+                  }}
+                />
+                <button 
+                  onClick={() => copyToClipboard(generateWorkoutShareText(sharingWorkout))} 
+                  className="btn btn-primary"
+                >
+                  📋 Скопировать
+                </button>
+              </div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    function StatsTab({ workouts, exercises }) {
+      const [selectedExerciseId, setSelectedExerciseId] = useState(null);
+      const [showShareStatsModal, setShowShareStatsModal] = useState(false);
+
+      const totalWorkouts = workouts.length;
+      const totalSets = workouts.reduce((sum, w) => sum + w.exercises.reduce((s, e) => s + e.sets.length, 0), 0);
+      const totalVolume = workouts.reduce(
+        (sum, w) => sum + w.exercises.reduce((s, e) => s + e.sets.reduce((v, set) => v + (set.weight || 0) * set.reps, 0), 0),
+        0
+      );
+      /* Изменено вычисление среднего настроения для шкалы 1-3 */
+      const avgMood = workouts.filter(w => w.overallMood).length
+        ? (workouts.filter(w => w.overallMood).reduce((sum, w) => sum + (w.overallMood || 0), 0) / workouts.filter(w => w.overallMood).length).toFixed(1)
+        : 'N/A';
+      /* </CHANGE> */
+      
+      const latestWeight = [...workouts].reverse().find(w => w.bodyWeightAfter)?.bodyWeightAfter || 
+                           [...workouts].reverse().find(w => w.bodyWeightBefore)?.bodyWeightBefore;
+      
+      const totalMs = workouts.reduce((sum, w) => w.endDate ? sum + (new Date(w.endDate).getTime() - new Date(w.startDate).getTime()) : sum, 0);
+      
+      const totalHours = Math.floor(totalMs / 3600000);
+      const totalMinutes = Math.floor((totalMs % 3600000) / 60000);
+      const gymTimeDisplay = `${totalHours}ч ${totalMinutes}м`;
+
+      const stats = [
+        { label: 'Тренировок', value: totalWorkouts, icon: '💪', gradient: 'linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%)' },
+        { label: 'Подходов', value: totalSets, icon: '📈', gradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)' },
+        { label: 'Поднято тонн', value: (totalVolume / 1000).toFixed(1), icon: '⚖️', gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' },
+        { label: 'Настроение', value: avgMood, icon: '❤️', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' },
+        { label: 'Вес (кг)', value: latestWeight ? latestWeight.toFixed(1) : 'N/A', icon: '⚖️', gradient: 'linear-gradient(135deg, #f43f5e 0%, #dc2626 100%)' },
+        { label: 'Время в зале', value: gymTimeDisplay, icon: '⏱️', gradient: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' },
+      ];
+
+      const generateStatsShareText = () => {
+        let text = `📊 GymFlow - Моя статистика\n\n`;
+        text += `💪 Тренировок: ${totalWorkouts}\n`;
+        text += `📈 Подходов: ${totalSets}\n`;
+        text += `⚖️ Поднято тонн: ${(totalVolume / 1000).toFixed(1)}\n`;
+        text += `⏱️ Время в зале: ${gymTimeDisplay}\n`;
+        if (avgMood !== 'N/A') {
+          text += `❤️ Среднее настроение: ${avgMood}/3\n`;
+        }
+        if (latestWeight) {
+          text += `🎯 Текущий вес: ${latestWeight.toFixed(1)} кг\n`;
+        }
+        return text;
+      };
+
+      const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('📋 Скопировано в буфер обмена!');
+        }).catch(() => {
+          alert('Не удалось скопировать. Попробуйте снова.');
+        });
+      };
+
+      const exercisesWithData = exercises.filter(ex => 
+        workouts.some(w => w.exercises.some(e => e.exerciseId === ex.id && e.sets.length > 0))
+      );
+
+      const getExerciseChartData = (exerciseId) => {
+        const data = [];
+        workouts.forEach(w => {
+          const ex = w.exercises.find(e => e.exerciseId === exerciseId);
+          if (ex && ex.sets.length > 0) {
+            data.push({
+              date: new Date(w.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+              maxWeight: Math.max(...ex.sets.map(s => s.weight || 0)),
+              maxReps: Math.max(...ex.sets.map(s => s.reps || 0)),
+              volume: ex.sets.reduce((a, s) => a + (s.weight || 0) * s.reps, 0) / 1000
+            });
+          }
+        });
+        return data;
+      };
+
+      const getBodyWeightData = () => {
+        return workouts
+          .filter(w => w.bodyWeightBefore || w.bodyWeightAfter)
+          .map(w => ({
+            date: new Date(w.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+            before: w.bodyWeightBefore,
+            after: w.bodyWeightAfter
+          }));
+      };
+
+      const getMoodData = () => {
+        return workouts
+          .filter(w => w.overallMood)
+          .map(w => ({
+            date: new Date(w.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+            mood: w.overallMood
+          }));
+      };
+
+      const selectedExerciseData = selectedExerciseId ? getExerciseChartData(selectedExerciseId) : [];
+      const selectedExerciseDef = exercises.find(e => e.id === selectedExerciseId);
+      const selectedExerciseName = selectedExerciseDef?.name;
+      const isSelectedExerciseWithWeight = selectedExerciseDef ? checkExerciseHasWeight(selectedExerciseDef) : true;
+      const bodyWeightData = getBodyWeightData();
+      const moodData = getMoodData();
+
+      return (
+        <div>
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title" style={{marginBottom: '1.5rem'}}>Статистика</h2>
+              <button onClick={() => setShowShareStatsModal(true)} className="btn btn-primary" style={{fontSize: '0.875rem'}}>
+                <span>📤</span> Поделиться
+              </button>
+            </div>
+            
+            <div className="grid" style={{marginBottom: '2rem'}}>
+              {stats.map((stat, idx) => (
+                <div key={idx} className="stat-card">
+                  <div className="stat-icon" style={{background: stat.gradient}}>
+                    {stat.icon}
+                  </div>
+                  <p className="stat-value">{stat.value}</p>
+                  <p className="stat-label">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {exercisesWithData.length > 0 && (
+              <div className="form-group">
+                <label className="label">Выберите упражнение для анализа</label>
+                <select
+                  value={selectedExerciseId || ''}
+                  onChange={(e) => setSelectedExerciseId(e.target.value ? Number(e.target.value) : null)}
+                  className="input"
+                >
+                  <option value="">-- Выберите упражнение --</option>
+                  {exercisesWithData.map(ex => (
+                    <option key={ex.id} value={ex.id}>{ex.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedExerciseId && selectedExerciseData.length > 0 && (
+              isSelectedExerciseWithWeight ? (
+                <>
+                  <div className="chart-container">
+                    <h3 className="chart-title">{selectedExerciseName} – Рост рабочего веса</h3>
+                    <LineChart data={selectedExerciseData} dataKey="maxWeight" color="#4f46e5" label="кг" />
+                  </div>
+                  <div className="chart-container">
+                    <h3 className="chart-title">{selectedExerciseName} – Общий тоннаж</h3>
+                    <LineChart data={selectedExerciseData} dataKey="volume" color="#a855f7" label="т" />
+                  </div>
+                </>
+              ) : (
+                <div className="chart-container">
+                  <h3 className="chart-title">{selectedExerciseName} – Максимальные повторения</h3>
+                  <LineChart data={selectedExerciseData} dataKey="maxReps" color="#059669" label="повт." />
+                </div>
+              )
+            )}
+
+            {bodyWeightData.length > 0 && (
+              <div className="chart-container">
+                <h3 className="chart-title">Динамика веса тела</h3>
+                <DualLineChart data={bodyWeightData} />
+              </div>
+            )}
+
+            {moodData.length > 0 && (
+              <div className="chart-container">
+                <h3 className="chart-title">Динамика самочувствия</h3>
+                <MoodChart data={moodData} />
+              </div>
+            )}
+          </div>
+          
+          {showShareStatsModal && (
+            <Modal onClose={() => setShowShareStatsModal(false)} title="Поделиться статистикой">
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                <textarea
+                  value={generateStatsShareText()}
+                  readOnly
+                  style={{
+                    width: '100%',
+                    minHeight: '200px',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.875rem',
+                    fontFamily: 'monospace',
+                    resize: 'vertical'
+                  }}
+                />
+                <button 
+                  onClick={() => copyToClipboard(generateStatsShareText())} 
+                  className="btn btn-primary"
+                >
+                  📋 Скопировать
+                </button>
+              </div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    /* Улучшенные графики для телефона с правильным отображением одиночных точек и подписями осей */
+    function LineChart({ data, dataKey, color, label }) {
+      if (data.length === 0) return null;
+
+      const maxValue = Math.max(...data.map(p => p[dataKey]));
+      const minValue = Math.min(...data.map(p => p[dataKey]));
+      const range = maxValue - minValue || 1;
+
+      const yAxisLabels = [];
+      for (let i = 0; i <= 4; i++) {
+        yAxisLabels.push((minValue + (range * i / 4)).toFixed(1));
+      }
+
+      // Для одной точки используем по центру
+      const isSinglePoint = data.length === 1;
+
+      return (
+        <div style={{
+          width: '100%',
+          overflowX: isSinglePoint ? 'visible' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <svg 
+            viewBox="0 0 900 380" 
+            style={{
+              width: isSinglePoint ? '100%' : `${Math.max(600, data.length * 100)}px`,
+              height: '380px',
+              minWidth: '300px'
+            }}
+          >
+            {/* Подпись оси Y */}
+            <text
+              x="10"
+              y="30"
+              style={{fontSize: '14px', fill: '#475569', fontWeight: '600'}}
+            >
+              {label}
+            </text>
+
+            {/* Линии сетки и метки Y */}
+            {yAxisLabels.map((labelValue, i) => (
+              <g key={i}>
+                <line
+                  x1="70"
+                  y1={320 - (i * 60)}
+                  x2="870"
+                  y2={320 - (i * 60)}
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
+                />
+                <text
+                  x="60"
+                  y={325 - (i * 60)}
+                  textAnchor="end"
+                  style={{fontSize: '12px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {labelValue}
+                </text>
+              </g>
+            ))}
+            
+            {isSinglePoint ? (
+              <g>
+                <circle cx={470} cy={320 - ((data[0][dataKey] - minValue) / range) * 240} r="8" fill={color} />
+                <text
+                  x={470}
+                  y={320 - ((data[0][dataKey] - minValue) / range) * 240 - 20}
+                  textAnchor="middle"
+                  style={{fontSize: '14px', fill: '#0f172a', fontWeight: '700'}}
+                >
+                  {data[0][dataKey].toFixed(1)} {label}
+                </text>
+                <text
+                  x={470}
+                  y={360}
+                  textAnchor="middle"
+                  style={{fontSize: '12px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {data[0].date}
+                </text>
+              </g>
+            ) : (
+              <>
+                <polyline
+                  points={data.map((point, idx) => {
+                    const x = 120 + (idx / (data.length - 1)) * 720;
+                    const y = 320 - ((point[dataKey] - minValue) / range) * 240;
+                    return `${x},${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                
+                {data.map((point, idx) => {
+                  const x = 120 + (idx / (data.length - 1)) * 720;
+                  const y = 320 - ((point[dataKey] - minValue) / range) * 240;
+                  return (
+                    <g key={idx}>
+                      <circle cx={x} cy={y} r="6" fill={color} />
+                      <text
+                        x={x}
+                        y={y - 18}
+                        textAnchor="middle"
+                        style={{fontSize: '13px', fill: '#0f172a', fontWeight: '700'}}
+                      >
+                        {point[dataKey].toFixed(1)}
+                      </text>
+                      <text
+                        x={x}
+                        y={360}
+                        textAnchor="middle"
+                        style={{fontSize: '11px', fill: '#64748b', fontWeight: '500'}}
+                      >
+                        {point.date}
+                      </text>
+                    </g>
+                  );
+                })}
+              </>
+            )}
+          </svg>
+        </div>
+      );
+    }
+
+    function DualLineChart({ data }) {
+      if (data.length === 0) return null;
+
+      const allWeights = data.flatMap(p => [p.before, p.after].filter(Boolean));
+      const minWeight = Math.min(...allWeights);
+      const maxWeight = Math.max(...allWeights);
+      const range = maxWeight - minWeight || 1;
+
+      const yAxisLabels = [];
+      for (let i = 0; i <= 4; i++) {
+        yAxisLabels.push((minWeight + (range * i / 4)).toFixed(1));
+      }
+
+      const beforeData = data.filter(p => p.before);
+      const afterData = data.filter(p => p.after);
+      const isSinglePoint = data.length === 1;
+
+      return (
+        <div style={{
+          width: '100%',
+          overflowX: isSinglePoint ? 'visible' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <svg 
+            viewBox="0 0 900 420" 
+            style={{
+              width: isSinglePoint ? '100%' : `${Math.max(600, data.length * 100)}px`,
+              height: '420px',
+              minWidth: '300px'
+            }}
+          >
+            {/* Подпись оси Y */}
+            <text
+              x="10"
+              y="30"
+              style={{fontSize: '14px', fill: '#475569', fontWeight: '600'}}
+            >
+              кг
+            </text>
+
+            {/* Линии сетки и метки Y */}
+            {yAxisLabels.map((labelValue, i) => (
+              <g key={i}>
+                <line
+                  x1="70"
+                  y1={320 - (i * 60)}
+                  x2="870"
+                  y2={320 - (i * 60)}
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
+                />
+                <text
+                  x="60"
+                  y={325 - (i * 60)}
+                  textAnchor="end"
+                  style={{fontSize: '12px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {labelValue}
+                </text>
+              </g>
+            ))}
+            
+            {/* Before weight */}
+            {beforeData.length === 1 ? (
+              <g>
+                <circle 
+                  cx={470}
+                  cy={320 - ((beforeData[0].before - minWeight) / range) * 240}
+                  r="6" 
+                  fill="#10b981" 
+                />
+                <text
+                  x={470}
+                  y={320 - ((beforeData[0].before - minWeight) / range) * 240 + 25}
+                  textAnchor="middle"
+                  style={{fontSize: '13px', fill: '#047857', fontWeight: '700'}}
+                >
+                  {beforeData[0].before.toFixed(1)}
+                </text>
+              </g>
+            ) : beforeData.length > 1 && (
+              <>
+                <polyline
+                  points={beforeData.map((point) => {
+                    const idx = data.indexOf(point);
+                    const x = 120 + (idx / (data.length - 1)) * 720;
+                    const y = 320 - ((point.before - minWeight) / range) * 240;
+                    return `${x},${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {beforeData.map((point) => {
+                  const idx = data.indexOf(point);
+                  const x = 120 + (idx / (data.length - 1)) * 720;
+                  const y = 320 - ((point.before - minWeight) / range) * 240;
+                  return (
+                    <g key={`before-${idx}`}>
+                      <circle cx={x} cy={y} r="5" fill="#10b981" />
+                      <text
+                        x={x}
+                        y={y + 22}
+                        textAnchor="middle"
+                        style={{fontSize: '12px', fill: '#047857', fontWeight: '700'}}
+                      >
+                        {point.before.toFixed(1)}
+                      </text>
+                    </g>
+                  );
+                })}
+              </>
+            )}
+            
+            {/* After weight */}
+            {afterData.length === 1 ? (
+              <g>
+                <circle 
+                  cx={470}
+                  cy={320 - ((afterData[0].after - minWeight) / range) * 240}
+                  r="6" 
+                  fill="#f43f5e" 
+                />
+                <text
+                  x={470}
+                  y={320 - ((afterData[0].after - minWeight) / range) * 240 - 15}
+                  textAnchor="middle"
+                  style={{fontSize: '13px', fill: '#be123c', fontWeight: '700'}}
+                >
+                  {afterData[0].after.toFixed(1)}
+                </text>
+              </g>
+            ) : afterData.length > 1 && (
+              <>
+                <polyline
+                  points={afterData.map((point) => {
+                    const idx = data.indexOf(point);
+                    const x = 120 + (idx / (data.length - 1)) * 720;
+                    const y = 320 - ((point.after - minWeight) / range) * 240;
+                    return `${x},${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="#f43f5e"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="5,5"
+                />
+                {afterData.map((point) => {
+                  const idx = data.indexOf(point);
+                  const x = 120 + (idx / (data.length - 1)) * 720;
+                  const y = 320 - ((point.after - minWeight) / range) * 240;
+                  return (
+                    <g key={`after-${idx}`}>
+                      <circle cx={x} cy={y} r="5" fill="#f43f5e" />
+                      <text
+                        x={x}
+                        y={y - 15}
+                        textAnchor="middle"
+                        style={{fontSize: '12px', fill: '#be123c', fontWeight: '700'}}
+                      >
+                        {point.after.toFixed(1)}
+                      </text>
+                    </g>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Подписи дат */}
+            {data.map((point, idx) => {
+              const x = isSinglePoint ? 470 : 120 + (idx / (data.length - 1)) * 720;
+              return (
+                <text
+                  key={idx}
+                  x={x}
+                  y={360}
+                  textAnchor="middle"
+                  style={{fontSize: '11px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {point.date}
+                </text>
+              );
+            })}
+          </svg>
+          
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '1rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+              <div style={{width: '20px', height: '3px', background: '#10b981'}}></div>
+              <span style={{fontSize: '0.875rem', color: '#64748b'}}>До тренировки</span>
+            </div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+              <div style={{width: '20px', height: '3px', background: '#f43f5e', borderTop: '3px dashed #f43f5e'}}></div>
+              <span style={{fontSize: '0.875rem', color: '#64748b'}}>После тренировки</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function MoodChart({ data }) {
+      if (data.length === 0) return null;
+
+      /* Изменен график настроения для 3-балльной шкалы */
+      const isSinglePoint = data.length === 1;
+
+      return (
+        <div style={{
+          width: '100%',
+          overflowX: isSinglePoint ? 'visible' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <svg 
+            viewBox="0 0 900 380" 
+            style={{
+              width: isSinglePoint ? '100%' : `${Math.max(600, data.length * 100)}px`,
+              height: '380px',
+              minWidth: '300px'
+            }}
+          >
+            {/* Подпись оси Y */}
+            <text
+              x="10"
+              y="30"
+              style={{fontSize: '14px', fill: '#475569', fontWeight: '600'}}
+            >
+              Самочувствие
+            </text>
+
+            {/* Линии сетки для 3 уровней */}
+            {[1, 2, 3].map(i => (
+              <g key={i}>
+                <line
+                  x1="70"
+                  y1={320 - ((i - 1) / 2) * 240}
+                  x2="870"
+                  y2={320 - ((i - 1) / 2) * 240}
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
+                />
+                <text
+                  x="60"
+                  y={325 - ((i - 1) / 2) * 240}
+                  textAnchor="end"
+                  style={{fontSize: '12px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {i}
+                </text>
+              </g>
+            ))}
+            
+            {isSinglePoint ? (
+              <g>
+                <defs>
+                  <linearGradient id="moodGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{stopColor: '#ef4444'}} />
+                    <stop offset="50%" style={{stopColor: '#facc15'}} />
+                    <stop offset="100%" style={{stopColor: '#10b981'}} />
+                  </linearGradient>
+                </defs>
+                <circle 
+                  cx={470} 
+                  cy={320 - ((data[0].mood - 1) / 2) * 240} 
+                  r="8" 
+                  fill={data[0].mood === 3 ? '#10b981' : data[0].mood === 2 ? '#facc15' : '#ef4444'} 
+                />
+                <text
+                  x={470}
+                  y={320 - ((data[0].mood - 1) / 2) * 240 - 25}
+                  textAnchor="middle"
+                  style={{fontSize: '24px'}}
+                >
+                  {data[0].mood === 1 ? '😫' : data[0].mood === 3 ? '😄' : '😐'}
+                </text>
+                <text
+                  x={470}
+                  y={360}
+                  textAnchor="middle"
+                  style={{fontSize: '12px', fill: '#64748b', fontWeight: '500'}}
+                >
+                  {data[0].date}
+                </text>
+              </g>
+            ) : (
+              <>
+                <defs>
+                  <linearGradient id="moodGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{stopColor: '#ef4444'}} />
+                    <stop offset="50%" style={{stopColor: '#facc15'}} />
+                    <stop offset="100%" style={{stopColor: '#10b981'}} />
+                  </linearGradient>
+                </defs>
+                <polyline
+                  points={data.map((point, idx) => {
+                    const x = 120 + (idx / (data.length - 1)) * 720;
+                    const y = 320 - ((point.mood - 1) / 2) * 240;
+                    return `${x},${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="url(#moodGradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                
+                {data.map((point, idx) => {
+                  const x = 120 + (idx / (data.length - 1)) * 720;
+                  const y = 320 - ((point.mood - 1) / 2) * 240;
+                  const getMoodColor = (mood) => {
+                    if (mood === 3) return '#10b981';
+                    if (mood === 2) return '#facc15';
+                    return '#ef4444';
+                  };
+                  return (
+                    <g key={idx}>
+                      <circle cx={x} cy={y} r="6" fill={getMoodColor(point.mood)} />
+                      <text
+                        x={x}
+                        y={y - 25}
+                        textAnchor="middle"
+                        style={{fontSize: '22px'}}
+                      >
+                        {point.mood === 1 ? '😫' : point.mood === 3 ? '😄' : '😐'}
+                      </text>
+                      <text
+                        x={x}
+                        y={360}
+                        textAnchor="middle"
+                        style={{fontSize: '11px', fill: '#64748b', fontWeight: '500'}}
+                      >
+                        {point.date}
+                      </text>
+                    </g>
+                  );
+                })}
+              </>
+            )}
+          </svg>
+        </div>
+      );
+    }
+    /* </CHANGE> */
+
+
+    function AchievementsTab({ unlockedAchievements }) {
+      return (
+        <div className="card">
+          <h2 className="card-title" style={{marginBottom: '1.5rem'}}>Достижения</h2>
+          
+          {ACHIEVEMENT_CATEGORIES.map((category, catIdx) => (
+            <div key={catIdx} style={{marginBottom: '2rem'}}>
+              <h3 style={{fontSize: '1.25rem', fontWeight: 600, color: '#2563eb', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid #e2e8f0'}}>
+                {category.name}
+              </h3>
+              <div className="achievement-grid">
+                {category.achievements.map(achievement => {
+                  const unlocked = unlockedAchievements.includes(achievement.id);
+                  return (
+                    <div
+                      key={achievement.id}
+                      className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`}
+                    >
+                      <div className={`achievement-icon ${unlocked ? '' : 'locked'}`}>
+                        {achievement.icon}
+                      </div>
+                      <h4 className="achievement-title">{achievement.title}</h4>
+                      <p className="achievement-desc">{achievement.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function SettingsTab({ exercises, userSettings, onSaveUserSettings, onAddExercise, onDeleteExercise, onExportData, onImportData, onResetData }) {
+      const [newExerciseName, setNewExerciseName] = useState('');
+      const [newExerciseCategory, setNewExerciseCategory] = useState('');
+      const [customCategory, setCustomCategory] = useState('');
+      const [newExerciseHasWeight, setNewExerciseHasWeight] = useState(true);
+      const [libraryFilter, setLibraryFilter] = useState('all'); // 'all', 'system', 'user'
+      const [librarySearch, setLibrarySearch] = useState('');
+      const [showLibraryModal, setShowLibraryModal] = useState(false);
+
+      // Значения по умолчанию
+      const [defaultWeightInput, setDefaultWeightInput] = useState(String(userSettings?.defaultWeight || 50));
+      const [defaultRepsInput, setDefaultRepsInput] = useState(String(userSettings?.defaultReps || 10));
+      const [defaultRestTimeInput, setDefaultRestTimeInput] = useState(String(userSettings?.defaultRestTime || 90));
+
+      const saveUserDefaults = () => {
+        const weight = parseFloat(defaultWeightInput.replace(',', '.')) || 0;
+        const reps = parseInt(defaultRepsInput, 10) || 10;
+        const restTime = parseInt(defaultRestTimeInput, 10) || 90;
+        
+        onSaveUserSettings({
+          defaultWeight: Math.max(0, weight),
+          defaultReps: Math.max(1, reps),
+          defaultRestTime: Math.max(5, restTime)
+        });
+      };
+
+      const addExercise = () => {
+        const name = newExerciseName.trim();
+        if (!name) {
+          alert('Введите название упражнения');
+          return;
+        }
+
+        const existing = exercises.find(e => e.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          alert(`ℹ️ Упражнение «${existing.name}» уже есть в базе в категории «${existing.group}» (${existing.system ? 'базовое' : 'пользовательское'})!\n\nВы можете сразу выбрать его во время тренировки или в шаблоне.`);
+          return;
+        }
+        
+        const category = newExerciseCategory === 'custom' ? customCategory.trim() || 'Пользовательские' : newExerciseCategory || 'Пользовательские';
+        
+        onAddExercise(name, category, newExerciseHasWeight);
+        setNewExerciseName('');
+        setNewExerciseCategory('');
+        setCustomCategory('');
+        setNewExerciseHasWeight(true);
+        alert(`Упражнение «${name}» добавлено в категорию «${category}» (${newExerciseHasWeight ? 'с весом' : 'без веса'})!`);
+      };
+
+      const availableCategories = Object.keys(exerciseDatabase);
+
+      const filteredExercises = exercises.filter(ex => {
+        if (libraryFilter === 'system' && !ex.system) return false;
+        if (libraryFilter === 'user' && ex.system) return false;
+        if (librarySearch.trim()) {
+          const q = librarySearch.trim().toLowerCase();
+          return ex.name.toLowerCase().includes(q) || (ex.group && ex.group.toLowerCase().includes(q));
+        }
+        return true;
+      });
+
+      return (
+        <div>
+          <div className="card">
+            <h2 className="card-title" style={{marginBottom: '1.5rem'}}>Настройки</h2>
+
+            <div style={{display: 'flex', flexDirection: 'column', gap: '2rem'}}>
+              
+              {/* Значения по умолчанию */}
+              <div style={{background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0'}}>
+                <h3 style={{fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem'}}>
+                  ⚙️ Значения по умолчанию
+                </h3>
+                <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '1.25rem'}}>
+                  Будут автоматически подставляться при добавлении новых подходов и таймера:
+                </p>
+
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                  <div className="form-group" style={{marginBottom: 0}}>
+                    <label className="label">Вес по умолчанию (кг) — можно с точкой или запятой</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={defaultWeightInput}
+                      onChange={e => {
+                        const val = e.target.value.replace(',', '.');
+                        if (val === '' || /^\d*\.?\d*$/.test(val)) setDefaultWeightInput(val);
+                      }}
+                      className="input"
+                      placeholder="50"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{marginBottom: 0}}>
+                    <label className="label">Повторения по умолчанию</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={defaultRepsInput}
+                      onChange={e => setDefaultRepsInput(e.target.value)}
+                      className="input"
+                      placeholder="10"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{marginBottom: 0}}>
+                    <label className="label">Время отдыха между подходами (секунды)</label>
+                    <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                      <input
+                        type="number"
+                        min="5"
+                        step="5"
+                        value={defaultRestTimeInput}
+                        onChange={e => setDefaultRestTimeInput(e.target.value)}
+                        className="input"
+                        style={{flex: 1, minWidth: '120px'}}
+                        placeholder="90"
+                      />
+                      <div style={{display: 'flex', gap: '0.25rem'}}>
+                        <button type="button" onClick={() => setDefaultRestTimeInput('60')} className="btn btn-secondary" style={{fontSize: '0.8125rem', padding: '0.5rem 0.75rem'}}>
+                          60с
+                        </button>
+                        <button type="button" onClick={() => setDefaultRestTimeInput('90')} className="btn btn-secondary" style={{fontSize: '0.8125rem', padding: '0.5rem 0.75rem'}}>
+                          90с
+                        </button>
+                        <button type="button" onClick={() => setDefaultRestTimeInput('120')} className="btn btn-secondary" style={{fontSize: '0.8125rem', padding: '0.5rem 0.75rem'}}>
+                          120с
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button onClick={saveUserDefaults} className="btn btn-primary" style={{alignSelf: 'flex-start', marginTop: '0.5rem'}}>
+                    💾 Сохранить значения по умолчанию
+                  </button>
+                </div>
+              </div>
+
+              {/* Библиотека упражнений и добавление нового */}
+              <div>
+                <h3 style={{fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem'}}>Библиотека упражнений</h3>
+                
+                <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0'}}>
+                  <h4 style={{fontSize: '0.9375rem', fontWeight: 600, color: '#334155'}}>Добавить новое упражнение</h4>
+                  
+                  <input
+                    type="text"
+                    value={newExerciseName}
+                    onChange={e => setNewExerciseName(e.target.value)}
+                    placeholder="Название упражнения"
+                    onKeyDown={e => e.key === 'Enter' && addExercise()}
+                    className="input"
+                  />
+                  
+                  <select
+                    value={newExerciseCategory}
+                    onChange={e => setNewExerciseCategory(e.target.value)}
+                    className="input"
+                  >
+                    <option value="">Выберите категорию</option>
+                    {availableCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="custom">+ Создать новую категорию</option>
+                  </select>
+                  
+                  {newExerciseCategory === 'custom' && (
+                    <input
+                      type="text"
+                      value={customCategory}
+                      onChange={e => setCustomCategory(e.target.value)}
+                      placeholder="Название новой категории"
+                      className="input"
+                    />
+                  )}
+
+                  {/* Выбор: с весом или без веса */}
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem'}}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer', fontSize: '0.9375rem', color: '#0f172a'}}>
+                      <input
+                        type="checkbox"
+                        checked={newExerciseHasWeight}
+                        onChange={e => setNewExerciseHasWeight(e.target.checked)}
+                        style={{width: '18px', height: '18px', cursor: 'pointer'}}
+                      />
+                      <span>Упражнение с весом (отягощением)</span>
+                    </label>
+                    <span style={{fontSize: '0.75rem', color: '#64748b', marginLeft: '1.75rem'}}>
+                      {newExerciseHasWeight ? 'Будет учитываться вес штанги/гантелей/тренажера' : 'Только повторения (подтягивания, пресс, собственный вес)'}
+                    </span>
+                  </div>
+                  
+                  <button onClick={addExercise} className="btn btn-primary" style={{alignSelf: 'flex-start', marginTop: '0.5rem'}}>
+                    <span>➕</span> Добавить упражнение
+                  </button>
+                </div>
+
+                {/* Поиск и список всех упражнений прямо в настройках */}
+                <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                  <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem'}}>
+                    <h4 style={{fontSize: '0.9375rem', fontWeight: 600, color: '#334155'}}>
+                      Список упражнений ({exercises.length})
+                    </h4>
+                    <div style={{display: 'flex', gap: '0.25rem'}}>
+                      <button 
+                        type="button" 
+                        onClick={() => setLibraryFilter('all')} 
+                        className="btn btn-secondary" 
+                        style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: libraryFilter === 'all' ? '#2563eb' : '#f1f5f9', color: libraryFilter === 'all' ? 'white' : '#475569'}}
+                      >
+                        Все ({exercises.length})
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setLibraryFilter('system')} 
+                        className="btn btn-secondary" 
+                        style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: libraryFilter === 'system' ? '#2563eb' : '#f1f5f9', color: libraryFilter === 'system' ? 'white' : '#475569'}}
+                      >
+                        Базовые ({exercises.filter(e => e.system).length})
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setLibraryFilter('user')} 
+                        className="btn btn-secondary" 
+                        style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: libraryFilter === 'user' ? '#2563eb' : '#f1f5f9', color: libraryFilter === 'user' ? 'white' : '#475569'}}
+                      >
+                        Мои ({exercises.filter(e => !e.system).length})
+                      </button>
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={librarySearch}
+                    onChange={e => setLibrarySearch(e.target.value)}
+                    placeholder="🔍 Поиск по базе (например: становая тяга, жим)..."
+                    className="input"
+                    style={{fontSize: '0.875rem'}}
+                  />
+
+                  <div style={{maxHeight: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.5rem'}}>
+                    {filteredExercises.length === 0 ? (
+                      <p style={{padding: '1rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem'}}>
+                        Упражнений не найдено
+                      </p>
+                    ) : (
+                      filteredExercises.map(ex => {
+                        const hasWeight = checkExerciseHasWeight(ex);
+                        return (
+                          <div key={ex.id} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', background: '#f8fafc', borderRadius: '8px', gap: '0.5rem'}}>
+                            <div style={{flex: 1}}>
+                              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap'}}>
+                                <span style={{fontWeight: 500, color: '#0f172a', fontSize: '0.9375rem'}}>{ex.name}</span>
+                                <span style={{fontSize: '0.6875rem', color: '#64748b', background: '#e2e8f0', padding: '0.125rem 0.375rem', borderRadius: '4px'}}>
+                                  {ex.group}
+                                </span>
+                                <span style={{fontSize: '0.6875rem', color: hasWeight ? '#2563eb' : '#059669', background: hasWeight ? '#eff6ff' : '#ecfdf5', padding: '0.125rem 0.375rem', borderRadius: '4px', fontWeight: 500}}>
+                                  {hasWeight ? 'С весом' : 'Без веса'}
+                                </span>
+                                {ex.system ? (
+                                  <span style={{fontSize: '0.6875rem', color: '#64748b', background: '#f1f5f9', padding: '0.125rem 0.375rem', borderRadius: '4px'}}>
+                                    Базовое
+                                  </span>
+                                ) : (
+                                  <span style={{fontSize: '0.6875rem', color: '#7c3aed', background: '#f5f3ff', padding: '0.125rem 0.375rem', borderRadius: '4px'}}>
+                                    Пользовательское
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {!ex.system && (
+                              <button onClick={() => onDeleteExercise(ex.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.125rem'}} title="Удалить упражнение">
+                                🗑️
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Управление данными */}
+              <div>
+                <h3 style={{fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem'}}>Управление данными</h3>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                  <button onClick={onExportData} className="btn btn-secondary" style={{justifyContent: 'center'}}>
+                    <span>💾</span> Экспорт данных
+                  </button>
+                  <button onClick={onImportData} className="btn btn-secondary" style={{justifyContent: 'center'}}>
+                    <span>📥</span> Импорт данных
+                  </button>
+                  <button onClick={onResetData} className="btn btn-danger" style={{justifyContent: 'center'}}>
+                    <span>🗑️</span> Сбросить все данные
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Modal({ onClose, title, children }) {
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{title}</h3>
+              <button onClick={onClose} className="modal-close">✖️</button>
+            </div>
+            <div className="modal-body">{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function GoalsTab({ goals, onSaveGoal, onDeleteGoal }) {
+      const [showModal, setShowModal] = useState(false);
+      const [editingGoal, setEditingGoal] = useState(null);
+      const [goalName, setGoalName] = useState('');
+      const [goalTarget, setGoalTarget] = useState('');
+      const [goalCurrent, setGoalCurrent] = useState('');
+      const [goalUnit, setGoalUnit] = useState('');
+
+      const openCreateModal = () => {
+        setEditingGoal(null);
+        setGoalName('');
+        setGoalTarget('');
+        setGoalCurrent('');
+        setGoalUnit('');
+        setShowModal(true);
+      };
+
+      const openEditModal = (goal) => {
+        setEditingGoal(goal);
+        setGoalName(goal.name);
+        setGoalTarget(goal.target.toString());
+        setGoalCurrent(goal.current.toString());
+        setGoalUnit(goal.unit);
+        setShowModal(true);
+      };
+
+      const saveGoal = () => {
+        if (!goalName.trim()) {
+          alert('Введите название цели');
+          return;
+        }
+        const targetNum = parseFloat(goalTarget.replace(',', '.'));
+        if (isNaN(targetNum) || targetNum <= 0) {
+          alert('Введите числовую цель');
+          return;
+        }
+        const currentNum = parseFloat(goalCurrent.replace(',', '.'));
+        if (isNaN(currentNum)) {
+          alert('Введите текущий результат');
+          return;
+        }
+
+        const goal = {
+          id: editingGoal?.id || Date.now(),
+          name: goalName,
+          target: targetNum,
+          current: currentNum,
+          unit: goalUnit || '',
+          createdAt: editingGoal?.createdAt || new Date().toISOString()
+        };
+
+        onSaveGoal(goal);
+        setShowModal(false);
+        alert(editingGoal ? 'Цель обновлена!' : 'Цель создана!');
+      };
+
+      const updateGoalProgress = (goal) => {
+        const newCurrent = prompt(`Обновить текущий результат для "${goal.name}":\n(Сейчас: ${goal.current} ${goal.unit})`, goal.current.toString());
+        if (newCurrent !== null) {
+          const parsed = parseFloat(newCurrent.replace(',', '.'));
+          if (!isNaN(parsed)) {
+            onSaveGoal({...goal, current: parsed});
+          }
+        }
+      };
+
+      const getProgressColor = (percentage) => {
+        if (percentage >= 100) return '#10b981';
+        if (percentage >= 75) return '#3b82f6';
+        if (percentage >= 50) return '#f59e0b';
+        return '#ef4444';
+      };
+
+      return (
+        <div>
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Мои цели</h2>
+              <button onClick={openCreateModal} className="btn btn-primary">
+                <span>➕</span> Новая цель
+              </button>
+            </div>
+
+            {goals.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🎯</div>
+                <h3 className="empty-title">Нет целей</h3>
+                <p>Создайте свою первую цель и начните путь к успеху!</p>
+              </div>
+            ) : (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+                {goals.map(goal => {
+                  const percentage = Math.min(100, (goal.current / goal.target) * 100);
+                  const progressColor = getProgressColor(percentage);
+                  const isCompleted = percentage >= 100;
+
+                  return (
+                    <div 
+                      key={goal.id} 
+                      style={{
+                        background: isCompleted 
+                          ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)' 
+                          : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                        border: `2px solid ${isCompleted ? '#10b981' : '#e2e8f0'}`,
+                        borderRadius: '16px',
+                        padding: '1.5rem',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {isCompleted && (
+                        <div style={{position: 'absolute', top: '10px', right: '10px', fontSize: '2rem'}}>
+                          🎉
+                        </div>
+                      )}
+                      
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem'}}>
+                        <div style={{flex: 1}}>
+                          <h3 style={{fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem'}}>
+                            {goal.name}
+                          </h3>
+                          <p style={{fontSize: '1.125rem', color: '#64748b', fontWeight: 500}}>
+                            {goal.current} / {goal.target} {goal.unit}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => { if (confirm('Удалить цель?')) { onDeleteGoal(goal.id); } }} 
+                          style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.5rem'}}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+
+                      <div style={{position: 'relative', height: '32px', background: '#e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem'}}>
+                        <div 
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            height: '100%',
+                            width: `${percentage}%`,
+                            background: progressColor,
+                            transition: 'width 0.5s ease',
+                            borderRadius: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {percentage > 10 && (
+                            <span style={{color: 'white', fontWeight: 700, fontSize: '0.875rem'}}>
+                              {percentage.toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
+                        {percentage <= 10 && (
+                          <span style={{position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#475569', fontWeight: 700, fontSize: '0.875rem'}}>
+                            {percentage.toFixed(0)}%
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+                        <button onClick={() => updateGoalProgress(goal)} className="btn btn-primary" style={{flex: 1, fontSize: '0.875rem'}}>
+                          📊 Обновить прогресс
+                        </button>
+                        <button onClick={() => openEditModal(goal)} className="btn btn-secondary" style={{fontSize: '0.875rem'}}>
+                          ✏️ Изменить
+                        </button>
+                      </div>
+
+                      {isCompleted && (
+                        <div style={{marginTop: '1rem', padding: '0.75rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', textAlign: 'center'}}>
+                          <p style={{color: '#10b981', fontWeight: 600, fontSize: '1rem'}}>
+                            🎊 Поздравляем! Цель достигнута! 🎊
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {showModal && (
+            <Modal onClose={() => setShowModal(false)} title={editingGoal ? 'Редактировать цель' : 'Создать новую цель'}>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+                <div className="form-group">
+                  <label className="label">Название цели</label>
+                  <input 
+                    type="text" 
+                    value={goalName} 
+                    onChange={e => setGoalName(e.target.value)} 
+                    placeholder="Например: Жим лежа 100 кг" 
+                    className="input" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="label">Целевой результат — можно с точкой или запятой</label>
+                  <input 
+                    type="text" 
+                    inputMode="decimal"
+                    value={goalTarget} 
+                    onChange={e => {
+                      const val = e.target.value.replace(',', '.');
+                      if (val === '' || /^\d*\.?\d*$/.test(val)) setGoalTarget(val);
+                    }} 
+                    placeholder="100" 
+                    className="input" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="label">Текущий результат — можно с точкой или запятой</label>
+                  <input 
+                    type="text" 
+                    inputMode="decimal"
+                    value={goalCurrent} 
+                    onChange={e => {
+                      const val = e.target.value.replace(',', '.');
+                      if (val === '' || /^\d*\.?\d*$/.test(val)) setGoalCurrent(val);
+                    }} 
+                    placeholder="80" 
+                    className="input" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="label">Единица измерения</label>
+                  <input 
+                    type="text" 
+                    value={goalUnit} 
+                    onChange={e => setGoalUnit(e.target.value)} 
+                    placeholder="кг, раз, мин..." 
+                    className="input" 
+                  />
+                </div>
+
+                <button onClick={saveGoal} className="btn btn-primary">
+                  {editingGoal ? 'Сохранить изменения' : 'Создать цель'}
+                </button>
+              </div>
+            </Modal>
+          )}
+        </div>
+      );
+    }
+
+    function CalendarTab({ workouts }) {
+      const [currentMonth, setCurrentMonth] = useState(new Date());
+
+      const getDaysInMonth = (date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+
+        return { daysInMonth, startingDayOfWeek, year, month };
+      };
+
+      const getWorkoutDates = () => {
+        const dates = new Set();
+        workouts.forEach(w => {
+          if (w.endDate) {
+            const date = new Date(w.startDate);
+            dates.add(`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`);
+          }
+        });
+        return dates;
+      };
+
+      const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentMonth);
+      const workoutDates = getWorkoutDates();
+
+      const prevMonth = () => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+      };
+
+      const nextMonth = () => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+      };
+
+      const isToday = (day) => {
+        const today = new Date();
+        return day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      };
+
+      const hasWorkout = (day) => {
+        return workoutDates.has(`${year}-${month}-${day}`);
+      };
+
+      const getMonthStats = () => {
+        const monthWorkouts = workouts.filter(w => {
+          const date = new Date(w.startDate);
+          return date.getMonth() === month && date.getFullYear() === year;
+        });
+        
+        return {
+          count: monthWorkouts.length,
+          totalVolume: monthWorkouts.reduce(
+            (sum, w) => sum + w.exercises.reduce((s, e) => s + e.sets.reduce((v, set) => v + set.weight * set.reps, 0), 0),
+            0
+          )
+        };
+      };
+
+      const monthStats = getMonthStats();
+      const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+      return (
+        <div className="card">
+          <div style={{marginBottom: '2rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem'}}>
+              <button onClick={prevMonth} className="btn btn-secondary" style={{fontSize: '1.5rem', padding: '0.5rem 1rem'}}>
+                ←
+              </button>
+              <h2 style={{fontSize: '1.5rem', fontWeight: 700, color: '#0f172a'}}>
+                {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+              </h2>
+              <button onClick={nextMonth} className="btn btn-secondary" style={{fontSize: '1.5rem', padding: '0.5rem 1rem'}}>
+                →
+              </button>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '2rem'}}>
+              <div style={{background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', padding: '1rem', borderRadius: '12px'}}>
+                <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem'}}>Тренировок в месяце</p>
+                <p style={{fontSize: '2rem', fontWeight: 700, color: '#2563eb'}}>{monthStats.count}</p>
+              </div>
+              <div style={{background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', padding: '1rem', borderRadius: '12px'}}>
+                <p style={{fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem'}}>Тоннаж месяца</p>
+                <p style={{fontSize: '2rem', fontWeight: 700, color: '#a855f7'}}>{(monthStats.totalVolume / 1000).toFixed(1)} т</p>
+              </div>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '0.5rem'}}>
+              {weekDays.map(day => (
+                <div key={day} style={{textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: '0.875rem', padding: '0.5rem'}}>
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem'}}>
+              {Array.from({ length: (startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1) }, (_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+              
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1;
+                const today = isToday(day);
+                const workout = hasWorkout(day);
+
+                return (
+                  <div
+                    key={day}
+                    style={{
+                      aspectRatio: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '12px',
+                      background: workout 
+                        ? 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)' 
+                        : today 
+                          ? '#e2e8f0' 
+                          : '#f8fafc',
+                      border: today ? '2px solid #2563eb' : 'none',
+                      color: workout ? 'white' : '#0f172a',
+                      fontWeight: workout || today ? 700 : 500,
+                      fontSize: '1rem',
+                      position: 'relative',
+                      cursor: workout ? 'pointer' : 'default',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      boxShadow: workout ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (workout) {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (workout) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                      }
+                    }}
+                  >
+                    {day}
+                    {workout && (
+                      <div style={{position: 'absolute', bottom: '4px', right: '4px', fontSize: '0.75rem'}}>
+                        💪
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{marginTop: '2rem', padding: '1rem', background: '#fef3c7', borderRadius: '12px'}}>
+              <p style={{fontSize: '0.875rem', color: '#78350f', textAlign: 'center'}}>
+                💡 <strong>Совет:</strong> Стремитесь к регулярности! Даже 3 тренировки в неделю приведут к отличным результатам.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('GymFlow PWA ServiceWorker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.warn('GymFlow PWA ServiceWorker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
