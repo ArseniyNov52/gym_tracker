@@ -838,28 +838,59 @@
       return true;
     }
 
-    // Звуковой сигнал завершения таймера через Web Audio API (без внешних файлов)
+    // Короткий трёхсекундный сигнал без внешнего аудиофайла.
+    // Web Audio работает только пока страница активна; для заблокированного экрана
+    // дополнительно используется системное PWA-уведомление ниже.
     function playTimerSound() {
       try {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         const ctx = new AudioContextClass();
-        const playBeep = (freq, time, dur) => {
-          const osc = ctx.createOscillator();
+        const start = ctx.currentTime;
+        const playBeep = (freq, time, duration) => {
+          const oscillator = ctx.createOscillator();
           const gain = ctx.createGain();
-          osc.connect(gain);
+          oscillator.connect(gain);
           gain.connect(ctx.destination);
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, time);
-          gain.gain.setValueAtTime(0.25, time);
-          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
-          osc.start(time);
-          osc.stop(time + dur);
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(freq, time);
+          gain.gain.setValueAtTime(0.0001, time);
+          gain.gain.exponentialRampToValueAtTime(0.28, time + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+          oscillator.start(time);
+          oscillator.stop(time + duration + 0.02);
         };
-        playBeep(880, ctx.currentTime, 0.2);
-        playBeep(1174.66, ctx.currentTime + 0.22, 0.35);
-      } catch (e) {
-        // Контекст аудио может ожидать жеста пользователя
+        playBeep(880, start, 0.42);
+        playBeep(1174.66, start + 0.52, 0.42);
+        playBeep(880, start + 1.04, 0.42);
+        playBeep(1174.66, start + 1.56, 0.42);
+        playBeep(1318.51, start + 2.08, 0.72);
+        window.setTimeout(() => ctx.close().catch(() => {}), 3400);
+      } catch (error) {
+        // На заблокированном экране сигнал берёт на себя Notification API.
+      }
+    }
+
+    function notifyTimerFinished(exerciseName) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      const title = 'GymFlow — время отдыха вышло';
+      const body = exerciseName ? `Следующий подход: ${exerciseName}` : 'Готовы к следующему подходу?';
+      const options = {
+        body,
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        tag: 'gymflow-rest-timer',
+        renotify: true,
+        silent: false,
+        vibrate: [200, 100, 200],
+        data: { url: './' }
+      };
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then(registration => registration.showNotification(title, options))
+          .catch(() => new Notification(title, options));
+      } else {
+        new Notification(title, options);
       }
     }
 
@@ -948,6 +979,26 @@
       /* Улучшенный таймер тренировки с поддержкой работы в фоновом режиме */
       const timerStartTimeRef = useRef(null);
       const lastUpdateRef = useRef(Date.now());
+      const timerNotificationTimeoutRef = useRef(null);
+
+      const finishRestTimer = (targetTime, exerciseName) => {
+        const completionKey = String(targetTime);
+        if (localStorage.getItem('gym_rest_completed_target') === completionKey) return;
+        localStorage.setItem('gym_rest_completed_target', completionKey);
+        localStorage.removeItem('gym_rest_running');
+        localStorage.removeItem('gym_rest_target');
+        setRestTimer(prev => ({
+          ...prev,
+          isRunning: false,
+          remainingSeconds: 0
+        }));
+        playTimerSound();
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        notifyTimerFinished(exerciseName);
+        if (!document.hidden) {
+          alert('⏰ Время отдыха закончилось! Готовы к следующему подходу?');
+        }
+      };
 
       useEffect(() => {
         let interval;
@@ -991,16 +1042,7 @@
             const now = Date.now();
             const diff = Math.ceil((restTimer.targetTime - now) / 1000);
             if (diff <= 0) {
-              setRestTimer(prev => ({
-                ...prev,
-                isRunning: false,
-                remainingSeconds: 0
-              }));
-              localStorage.removeItem('gym_rest_running');
-              localStorage.removeItem('gym_rest_target');
-              playTimerSound();
-              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-              alert('⏰ Время отдыха закончилось! Готовы к следующему подходу?');
+              finishRestTimer(restTimer.targetTime, restTimer.exerciseName);
             } else {
               setRestTimer(prev => ({
                 ...prev,
@@ -1014,16 +1056,7 @@
               const now = Date.now();
               const diff = Math.ceil((restTimer.targetTime - now) / 1000);
               if (diff <= 0) {
-                setRestTimer(prev => ({
-                  ...prev,
-                  isRunning: false,
-                  remainingSeconds: 0
-                }));
-                localStorage.removeItem('gym_rest_running');
-                localStorage.removeItem('gym_rest_target');
-                playTimerSound();
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                alert('⏰ Время отдыха закончилось! Готовы к следующему подходу?');
+                finishRestTimer(restTimer.targetTime, restTimer.exerciseName);
               } else {
                 setRestTimer(prev => ({
                   ...prev,
@@ -1045,12 +1078,24 @@
       const startRestTimer = (seconds, exerciseName = '') => {
         const duration = Math.max(5, seconds || userSettings.defaultRestTime || 90);
         const targetTime = Date.now() + duration * 1000;
-        
+
+        localStorage.removeItem('gym_rest_completed_target');
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {});
+        }
         localStorage.setItem('gym_rest_running', 'true');
         localStorage.setItem('gym_rest_target', targetTime.toString());
         localStorage.setItem('gym_rest_total', duration.toString());
         localStorage.setItem('gym_rest_exercise', exerciseName);
-        
+
+        if (timerNotificationTimeoutRef.current) {
+          clearTimeout(timerNotificationTimeoutRef.current);
+        }
+        timerNotificationTimeoutRef.current = window.setTimeout(
+          () => finishRestTimer(targetTime, exerciseName),
+          duration * 1000 + 50
+        );
+
         setRestTimer({
           isRunning: true,
           targetTime,
@@ -1077,6 +1122,10 @@
       };
 
       const stopRestTimer = () => {
+        if (timerNotificationTimeoutRef.current) {
+          clearTimeout(timerNotificationTimeoutRef.current);
+          timerNotificationTimeoutRef.current = null;
+        }
         localStorage.removeItem('gym_rest_running');
         localStorage.removeItem('gym_rest_target');
         setRestTimer(prev => ({
